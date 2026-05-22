@@ -24,7 +24,8 @@ public class Chacero {
 
     private String cedula;
 
-    private String correo_institucional;
+    @Column(name = "correo_institucional")
+    private String correoInstitucional;
 
     private String telefono;
 
@@ -32,7 +33,8 @@ public class Chacero {
 
     private String carrera;
 
-    private String rol_universitario;
+    @Column(name = "rol_universitario")
+    private String rolUniversitario;
 
     private String notas;
 }
