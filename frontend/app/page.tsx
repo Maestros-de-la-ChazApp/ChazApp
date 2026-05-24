@@ -2,9 +2,11 @@
 "use client";
 import { Info, Users, LockKeyhole } from "lucide-react";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
 
+  const router = useRouter();
   const [formData, setFormData] = useState({ usuario: '', password: '' });
   const [isLoading, setIsLoading] = useState(false);
 
@@ -27,17 +29,21 @@ export default function Home() {
         }
       );
 
-      const data = await response.text();
+      const tokenPlano = await response.text(); 
+  console.log("Token recibido exitosamente:", tokenPlano);
 
-      console.log(data);
-
-      if (data) {
-        alert("Login correcto");
-      } else {
-        alert("Credenciales incorrectas");
-      }
+  if (tokenPlano && tokenPlano.trim() !== "") {
+    // 2. Guardar el token crudo directamente en el almacenamiento
+    localStorage.setItem("token", tokenPlano);
+    localStorage.setItem("userEmail", formData.usuario); 
+    
+    // 3. Redirección inmediata al dashboard
+    router.push("/dashboard");
+  } else {
+    alert("El servidor devolvió una respuesta vacía");
+  }
     } catch (error) {
-      console.error("Error de conexión");
+      console.error("Error en la petición:", error);
     } finally {
       setIsLoading(false);
     }
@@ -79,7 +85,7 @@ export default function Home() {
                 </div>
                 <p className="text-sm text-neutral-500">Este es un mensaje de ayuda</p>
               </div>
-              <button onClick={handleLogin} formAction="submit" disabled={isLoading} className="bg-primary-200 text-white px-4 py-2 rounded w-fit font-bold rounded-tl-sm rounded-tr-lg rounded-br-sm rounded-bl-lg">{isLoading ? 'Cargando...' : 'Iniciar Sesión'}</button>
+              <button onClick={handleLogin} disabled={isLoading} className="bg-primary-200 text-white px-4 py-2 rounded w-fit font-bold rounded-tl-sm rounded-tr-lg rounded-br-sm rounded-bl-lg">{isLoading ? 'Cargando...' : 'Iniciar Sesión'}</button>
             </div>
           </div>
         </div>
