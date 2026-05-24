@@ -26,7 +26,7 @@ export default function Home() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-primary-500 font-sans ">
+    <div className="flex min-h-screen items-center justify-center bg-primary-300 font-sans ">
       <main className="flex min-h-screen w-full mx-auto flex-col items-center justify-center">
         <div className="flex flex-col items-center gap-4 bg-[#FAFAFA] w-full max-w-[655px] py-16 rounded-tl-xl rounded-tr-4xl rounded-br-xl rounded-bl-4xl">
           <div className="flex flex-col gap-6 w-full max-w-[90%] md:max-w-[80%]">
