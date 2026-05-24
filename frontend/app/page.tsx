@@ -13,11 +13,29 @@ export default function Home() {
     setIsLoading(true);
     
     try {
-      const response = await fetch('TU_API_URL/login', {
-        method: 'POST',
-        body: JSON.stringify(formData),
-      });
-      // Lógica de éxito o error aquí
+      const response = await fetch(
+        'http://localhost:8080/usuarios/login',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: formData.usuario,
+            password: formData.password,
+          }),
+        }
+      );
+
+      const data = await response.text();
+
+      console.log(data);
+
+      if (data) {
+        alert("Login correcto");
+      } else {
+        alert("Credenciales incorrectas");
+      }
     } catch (error) {
       console.error("Error de conexión");
     } finally {

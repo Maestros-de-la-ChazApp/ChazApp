@@ -1,0 +1,45 @@
+package com.chazapp.backend.entity;
+
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "chazas")
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@ToString
+
+public class Chaza {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id_chaza;
+
+    private Integer id_chacero;
+
+    private String qr_code;
+
+    private String producto;
+
+    private String ubicacion;
+
+    private Integer num_carpas;
+
+    private Boolean tiene_cocina;
+
+    private Boolean dentro;
+
+    private Boolean suspendida;
+
+    private LocalDate fecha_fin_sancion;
+
+    private String observaciones;
+
+    private LocalDateTime fecha_registro;
+}
