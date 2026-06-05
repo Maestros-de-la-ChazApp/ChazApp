@@ -53,6 +53,7 @@ public class ChaceroService {
         chacero.setCarrera(chaceroActualizado.getCarrera());
         chacero.setRolUniversitario(chaceroActualizado.getRolUniversitario());
         chacero.setNotas(chaceroActualizado.getNotas());
+        chacero.setId_usuario(chaceroActualizado.getId_usuario());
 
         return repository.save(chacero);
     }

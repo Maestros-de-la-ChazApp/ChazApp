@@ -11,7 +11,6 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
-
 public class Chacero {
 
     @Id
@@ -19,22 +18,20 @@ public class Chacero {
     private Integer id_chacero;
 
     private String nombre;
-
     private String apellido;
-
     private String cedula;
 
     @Column(name = "correo_institucional")
     private String correoInstitucional;
 
     private String telefono;
-
     private String facultad;
-
     private String carrera;
 
     @Column(name = "rol_universitario")
     private String rolUniversitario;
 
     private String notas;
+
+    private Integer id_usuario;
 }
