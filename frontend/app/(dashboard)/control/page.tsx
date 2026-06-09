@@ -8,9 +8,8 @@ export const AjustesPage: FC<IAjustesPageProps> = (props) => {
             <p>Esta es la página de control</p>
             <h3 className="text-xl font-semibold">Funcionalidades:</h3>
             <ul>
-                <li>Control de chazas</li>
-                <li>Control de estudiantes</li>
-                <li>Control de asistentes</li>
+                <li>Reportes</li>
+                <li>Registro Ingreso/Salida</li>
             </ul>
         </div>
     );

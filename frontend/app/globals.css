@@ -32,6 +32,22 @@
   --color-neutral-500: #a4a4a4;
   --color-neutral-1000: #333333;
 
+  --color-alert-100: #ffd2d9;
+  --color-alert-200: #e55f72;
+  --color-alert-300: #983140;
+
+  --color-warning-100: #fff3d2;
+  --color-warning-200: #f2bf2e;
+  --color-warning-300: #b48500;
+
+  --color-info-100: #c1f1ff;
+  --color-info-200: #2ba6cb;
+  --color-info-300: #016d8d;
+
+  --color-purple-100: #dfdeff;
+  --color-purple-200: #7d68ff;
+  --color-purple-300: #630ae1;
+
 }
 
 @media (prefers-color-scheme: dark) {
