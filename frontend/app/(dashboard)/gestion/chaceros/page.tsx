@@ -1,135 +1,101 @@
 "use client";
 
-import { FC, useState } from "react";
+import { FC, useState, useEffect } from "react";
 import { IChacerosPageProps, FormField } from "@/types";
-import { Plus } from "lucide-react";
+import { Plus, CircleUserRound } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { Form } from "@/components/ui/Form";
+import { ListItem } from "@/components/ui/ListItem";
+import { ListContainer } from "@/components/ui/ListContainer";
+import { Pagination } from "@/components/ui/Pagination";
 
 import { FACULTADES_UNAL, ROLES_CHACEROS } from "@/constants";
+import { GENERATED_CHACEROS } from "@/constants/mockData";
 
 export const ChacerosPage: FC<IChacerosPageProps> = (props) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
 
-  // Matriz con reglas estricta de correspondencia y Regex
-  const fieldsConfig: FormField[] = [
-    { 
-      name: "nombre", 
-      label: "Nombre", 
-      type: "text", 
-      placeholder: "Ej. Juan", 
-      required: true 
-    },
-    { 
-      name: "apellido", 
-      label: "Apellido", 
-      type: "text", 
-      placeholder: "Ej. Pérez", 
-      required: true 
-    },
-    { 
-      name: "cedula", 
-      label: "Número de Cédula", 
-      type: "text", // Cambiado a text para soportar la validación exacta de patrón numérico largo
-      placeholder: "Documento de identidad", 
-      required: true,
-      pattern: "^[0-9]{5,11}$", // Cédulas válidas en Colombia (de 5 a 11 dígitos)
-      infoTooltip: "Ingrese su número de documento sin puntos, comas ni espacios."
-    },
-    { 
-      name: "email", 
-      label: "Correo Institucional", 
-      type: "email", 
-      placeholder: "usuario@unal.edu.co", 
-      required: true,
-      pattern: "^[a-zA-Z0-9._%+-]+@unal\\.edu\\.co$", // Obliga terminación @unal.edu.co
-      infoTooltip: "Debe corresponder a una cuenta institucional activa de la Universidad Nacional."
-    },
-    { 
-      name: "celular", 
-      label: "Número de Celular", 
-      type: "text", 
-      placeholder: "3XXXXXXXXX", 
-      required: true,
-      pattern: "^3[0-9]{9}$", // Estándar celular colombiano: empieza por 3 y tiene 10 dígitos totales
-      infoTooltip: "Número de contacto móvil de 10 dígitos (Ej: 3001234567)."
-    },
-    { 
-      name: "facultad", 
-      label: "Facultad", 
-      type: "select", 
-      required: true, 
-      options: FACULTADES_UNAL 
-    },
-    { 
-      name: "carrera", 
-      label: "Carrera", 
-      type: "select", 
-      required: true, 
-      options: [], // Inicia vacío; el componente Form se encarga de poblarlo reactivamente
-      infoTooltip: "Seleccione primero una facultad para visualizar los programas de pregrado disponibles."
-    },
-    { 
-      name: "rol", 
-      label: "Rol del Chacero", 
-      type: "select", 
-      required: true, 
-      options: ROLES_CHACEROS 
-    },
-    { 
-      name: "chazaEmailId", 
-      label: "Correo Institucional de la Chaza", 
-      type: "email", 
-      placeholder: "chaza_ejemplo@unal.edu.co", 
-      required: true, 
-      pattern: "^[a-zA-Z0-9._%+-]+@unal\\.edu\\.co$",
-      infoTooltip: "ID único del puesto de comercio registrado en el sistema institucional." 
-    },
-    { 
-      name: "cantidadChazas", 
-      label: "Cantidad de chazas en las que trabaja", 
-      type: "number", 
-      min: 1, 
-      max: 6, 
-      placeholder: "Rango de 1 a 6", 
-      required: true,
-      infoTooltip: "Por normatividad, un colaborador solo puede estar asignado a un rango máximo de 6 chazas simultáneamente."
+  useEffect(() => {
+    const savedPreference = localStorage.getItem("chaceros_items_per_page");
+    if (savedPreference) {
+      setItemsPerPage(Number(savedPreference));
     }
-  ];
+  }, []);
+
+  const handleItemsPerPageChange = (size: number) => {
+    setItemsPerPage(size);
+    setCurrentPage(1);
+    localStorage.setItem("chaceros_items_per_page", String(size));
+  };
 
   const handleRegisterSubmit = (data: Record<string, unknown>) => {
     setIsSubmitting(true);
-    
-    // Como 'data' usa 'unknown', para leer sus propiedades de forma ultra-estricta en TS 
-    // puedes parsearlo o enviarlo directo a la petición JSON
-    console.log("Payload seguro para la API de Java:", data);
-    
     setTimeout(() => {
-        setIsSubmitting(false);
-        setIsModalOpen(false);
-        alert("Chacero/a guardado correctamente de forma segura.");
+      setIsSubmitting(false);
+      setIsModalOpen(false);
+      alert("Chacero/a registrado con éxito.");
     }, 1000);
-    };
+  };
+
+  const fieldsConfig: FormField[] = [
+    { name: "nombre", label: "Nombre", type: "text", placeholder: "Ej. Juan", required: true },
+    { name: "apellido", label: "Apellido", type: "text", placeholder: "Ej. Pérez", required: true },
+    { name: "cedula", label: "Número de Cédula", type: "text", placeholder: "Documento de identidad", required: true, pattern: "^[0-9]{5,11}$" },
+    { name: "email", label: "Correo Institucional", type: "email", placeholder: "usuario@unal.edu.co", required: true, pattern: "^[a-zA-Z0-9._%+-]+@unal\\.edu\\.co$" },
+    { name: "celular", label: "Número de Celular", type: "text", placeholder: "3XXXXXXXXX", required: true, pattern: "^3[0-9]{9}$" },
+    { name: "facultad", label: "Facultad", type: "select", required: true, options: FACULTADES_UNAL },
+    { name: "carrera", label: "Carrera", type: "select", required: true, options: [] },
+    { name: "rol", label: "Rol del Chacero", type: "select", required: true, options: ROLES_CHACEROS },
+    { name: "chazaEmailId", label: "Correo Institucional de la Chaza", type: "email", placeholder: "chaza@unal.edu.co", required: true, pattern: "^[a-zA-Z0-9._%+-]+@unal\\.edu\\.co$" },
+    { name: "amountChazas", label: "Cantidad de chazas en las que trabaja", type: "number", min: 1, max: 6, placeholder: "1-6", required: true }
+  ];
+
+  const chaceros = GENERATED_CHACEROS;
+
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentChaceros = chaceros.slice(indexOfFirstItem, indexOfLastItem);
 
   return (
-    <div className="flex flex-col gap-6 p-4 w-full max-w-5xl text-left">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-neutral-200 pb-4">
+    <div className="flex flex-col gap-6 p-4 w-full max-w-5xl mx-auto items-center">
+      <div className="w-full">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-neutral-200 pb-4">
         <div>
           <h2 className="text-3xl font-black text-neutral-1000 font-sans">Chaceros</h2>
-          <p className="text-sm text-neutral-600 mt-1">Esta es la página de los chaceros</p>
+          <p className="text-sm text-neutral-600 mt-1">Administra el personal autorizado en el ecosistema.</p>
         </div>
 
-        <Button
-          variant="info"
-          shape="asymmetric"
-          icon={Plus}
-          onClick={() => setIsModalOpen(true)}
-          className="shadow-sm"
-        >
+        <Button variant="info" shape="asymmetric" icon={Plus} onClick={() => setIsModalOpen(true)}>
           Agregar chacero/a
         </Button>
+      </div>
+        <div className="w-full flex flex-col gap-4">
+        <ListContainer>
+          {currentChaceros.map((chacero) => (
+            <ListItem
+              key={chacero.id}
+              id={chacero.id}
+              primaryText={chacero.nombreCompleto}
+              secondaryText={chacero.correo}
+              tertiaryText={chacero.rol}
+              icon={CircleUserRound}
+              onEdit={(id) => console.log(id)}
+            />
+          ))}
+        </ListContainer>
+
+        <Pagination
+          totalItems={chaceros.length}
+          currentPage={currentPage}
+          itemsPerPage={itemsPerPage}
+          onPageChange={setCurrentPage}
+          onItemsPerPageChange={handleItemsPerPageChange}
+        />
       </div>
 
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
@@ -143,12 +109,9 @@ export const ChacerosPage: FC<IChacerosPageProps> = (props) => {
           isLoading={isSubmitting}
         />
       </Modal>
-
-      <div className="bg-white p-8 rounded-2xl border border-neutral-200 shadow-xs min-h-[150px] flex items-center justify-center">
-        <p className="text-neutral-500 text-sm font-medium">
-          Listado y base de datos de chaceros activa. Presiona el botón superior para agregar un registro.
-        </p>
       </div>
+      
+      
     </div>
   );
 };

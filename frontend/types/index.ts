@@ -24,6 +24,24 @@ export interface FormFieldOption {
   value: string | number;
 }
 
+export interface ListContainerProps {
+  children: React.ReactNode;
+  totalItems: number;
+  currentPage: number;
+  itemsPerPage: number;
+  onPageChange: (page: number) => void;
+  onItemsPerPageChange: (size: number) => void;
+}
+
+export interface ListItemProps {
+  id: string;
+  primaryText: string;
+  secondaryText: string;
+  tertiaryText?: string;
+  icon?: LucideIcon | ElementType;
+  onEdit?: (id: string) => void;
+}
+
 export interface FormField {
   name: string;
   label: string;
@@ -46,6 +64,18 @@ export interface DynamicFormProps {
   submitLabel: string;
   onSubmit: (data: Record<string, unknown>) => void;
   isLoading?: boolean;
+}
+
+export interface PaginationProps {
+  totalItems: number;
+  currentPage: number;
+  itemsPerPage: number;
+  onPageChange: (page: number) => void;
+  onItemsPerPageChange: (size: number) => void;
+}
+
+export interface ListContainerProps {
+  children: React.ReactNode;
 }
 
 export interface IGestionPageProps {
