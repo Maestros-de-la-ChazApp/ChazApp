@@ -11,20 +11,26 @@ import { ListContainer } from "@/components/ui/ListContainer";
 import { Pagination } from "@/components/ui/Pagination";
 
 import { FACULTADES_UNAL, ROLES_CHACEROS } from "@/constants";
-import { GENERATED_CHACEROS } from "@/constants/mockData";
 
 export const ChacerosPage: FC<IChacerosPageProps> = (props) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
+  const [chaceros, setChaceros] = useState<any[]>([]);
 
   useEffect(() => {
     const savedPreference = localStorage.getItem("chaceros_items_per_page");
+
     if (savedPreference) {
       setItemsPerPage(Number(savedPreference));
     }
+
+    fetch("http://localhost:8080/chaceros")
+      .then((response) => response.json())
+      .then((data) => setChaceros(data))
+      .catch((error) => console.error(error));
   }, []);
 
   const handleItemsPerPageChange = (size: number) => {
@@ -33,13 +39,46 @@ export const ChacerosPage: FC<IChacerosPageProps> = (props) => {
     localStorage.setItem("chaceros_items_per_page", String(size));
   };
 
-  const handleRegisterSubmit = (data: Record<string, unknown>) => {
+  const handleRegisterSubmit = async (data: Record<string, unknown>) => {
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
+
+    try {
+      const payload = {
+        nombre: data.nombre,
+        apellido: data.apellido,
+        cedula: data.cedula,
+        correoInstitucional: data.email,
+        telefono: data.celular,
+        facultad: data.facultad,
+        carrera: data.carrera,
+        rolUniversitario: data.rol
+      };
+
+      const response = await fetch("http://localhost:8080/chaceros", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        throw new Error("Error al registrar chacero");
+      }
+
+      const nuevosChaceros = await fetch("http://localhost:8080/chaceros");
+      const listaActualizada = await nuevosChaceros.json();
+
+      setChaceros(listaActualizada);
+
       setIsModalOpen(false);
       alert("Chacero/a registrado con éxito.");
-    }, 1000);
+    } catch (error) {
+      console.error(error);
+      alert("Error al registrar chacero.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const fieldsConfig: FormField[] = [
@@ -54,8 +93,6 @@ export const ChacerosPage: FC<IChacerosPageProps> = (props) => {
     { name: "chazaEmailId", label: "Correo Institucional de la Chaza", type: "email", placeholder: "chaza@unal.edu.co", required: true, pattern: "^[a-zA-Z0-9._%+-]+@unal\\.edu\\.co$" },
     { name: "amountChazas", label: "Cantidad de chazas en las que trabaja", type: "number", min: 1, max: 6, placeholder: "1-6", required: true }
   ];
-
-  const chaceros = GENERATED_CHACEROS;
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -78,11 +115,11 @@ export const ChacerosPage: FC<IChacerosPageProps> = (props) => {
         <ListContainer>
           {currentChaceros.map((chacero) => (
             <ListItem
-              key={chacero.id}
-              id={chacero.id}
-              primaryText={chacero.nombreCompleto}
-              secondaryText={chacero.correo}
-              tertiaryText={chacero.rol}
+              key={chacero.id_chacero}
+              id={chacero.id_chacero}
+              primaryText={`${chacero.nombre} ${chacero.apellido}`}
+              secondaryText={chacero.correoInstitucional}
+              tertiaryText={chacero.rolUniversitario}
               icon={CircleUserRound}
               onEdit={(id) => console.log(id)}
             />
@@ -109,7 +146,7 @@ export const ChacerosPage: FC<IChacerosPageProps> = (props) => {
           isLoading={isSubmitting}
         />
       </Modal>
-      </div>      
+      </div>
     </div>
   );
 };
