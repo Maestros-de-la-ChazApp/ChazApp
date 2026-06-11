@@ -11,7 +11,6 @@ import java.security.Key;
 import java.util.Date;
 
 @Service
-
 public class JwtService {
 
     private final String SECRET_KEY =
@@ -21,11 +20,19 @@ public class JwtService {
             SECRET_KEY.getBytes(StandardCharsets.UTF_8)
     );
 
-    public String generateToken(String email) {
+    public String generateToken(
+            String email,
+            String rol
+    ) {
 
         return Jwts.builder()
 
                 .setSubject(email)
+
+                .claim(
+                        "rol",
+                        rol
+                )
 
                 .setIssuedAt(new Date())
 

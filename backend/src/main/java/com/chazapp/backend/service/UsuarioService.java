@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-
 public class UsuarioService {
 
     @Autowired
@@ -47,7 +46,10 @@ public class UsuarioService {
                         )
         ) {
 
-            return jwtService.generateToken(email);
+            return jwtService.generateToken(
+                    email,
+                    usuario.get().getRol()
+            );
         }
 
         return null;
