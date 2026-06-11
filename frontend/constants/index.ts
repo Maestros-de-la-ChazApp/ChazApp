@@ -1,5 +1,42 @@
 import { FormFieldOption } from "@/types";
 
+export const PRODUCTOS_CHAZA: FormFieldOption[] = [
+  { label: "Paquetes, Empanadas, arepas, pasteles", value: "paquetes_fritos" },
+  { label: "Almuerzos empacados", value: "almuerzos" },
+  { label: "Comida preparada Insitu", value: "comida_insitu" },
+  { label: "Postres y frutas", value: "postres_frutas" },
+  { label: "Bebidas preparadas o calientes", value: "bebidas" },
+];
+
+export const ZONAS_CAMPUS: FormFieldOption[] = [
+  { label: "Pasillo 26. Diseño Gráfico y Lingüística hasta Sociología", value: "pasillo_26_diseno" },
+  { label: "Posgrados Ciencias Humanas + Manuel Ancízar", value: "posgrados_humanas" },
+  { label: "Ciencias Agrarias", value: "ciencias_agrarias" },
+  { label: "Veterinaria", value: "veterinaria" },
+  { label: "Pasillo entre CYT y Medicina", value: "pasillo_cyt_medicina" },
+  { label: "Plaza CYT", value: "plaza_cyt" },
+  { label: "Química - Aulas de ingeniería", value: "quimica_aulas" },
+  { label: "FEM - Ingeniería", value: "fem_ingenieria" },
+  { label: "Nuevo Edificio Derecho y CP", value: "derecho_cp" },
+  { label: "Ciencias Económicas", value: "ciencias_economicas" },
+  { label: "NEA - SINDU", value: "nea_sindu" },
+  { label: "Carrera 30", value: "carrera_30" },
+  { label: "Plaza Che", value: "plaza_che" },
+  { label: "Andador Peatonal Cubierto (antigua torre enfermería)", value: "andador_enfermeria" },
+  { label: "Registro y Matrícula - Whimpy", value: "registro_whimpy" },
+  { label: "Pasillo de la 'Y'", value: "pasillo_y" },
+  { label: "Derecho", value: "derecho" },
+  { label: "Medicina", value: "medicina" },
+  { label: "Odontología - Enfermería", value: "odontologia_enfermeria" },
+  { label: "Ciencias Humanas", value: "ciencias_humanas" },
+  { label: "Pasillo 26", value: "pasillo_26" },
+];
+
+export const OPCIONES_COCINA: FormFieldOption[] = [
+  { label: "Sí", value: "si" },
+  { label: "No", value: "no" },
+];
+
 export const FACULTADES_UNAL: FormFieldOption[] = [
   { label: "Artes", value: "artes" },
   { label: "Ciencias", value: "ciencias" },

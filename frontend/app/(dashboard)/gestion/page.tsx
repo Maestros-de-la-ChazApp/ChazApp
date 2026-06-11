@@ -8,6 +8,7 @@ export const GestionPage: FC<IGestionPageProps> = (props) => {
             <h3 className="text-xl font-semibold">Funcionalidades:</h3>
             <ul>
                 <li><a href="/gestion/chaceros">Formularios de registro de chaceros</a></li>
+                <li><a href="/gestion/chazas">Formularios de registro de chazas</a></li>
             </ul>
         </div>
     );

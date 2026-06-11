@@ -109,9 +109,7 @@ export const ChacerosPage: FC<IChacerosPageProps> = (props) => {
           isLoading={isSubmitting}
         />
       </Modal>
-      </div>
-      
-      
+      </div>      
     </div>
   );
 };
