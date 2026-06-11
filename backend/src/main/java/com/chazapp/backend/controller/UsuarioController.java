@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/usuarios")
@@ -24,10 +23,12 @@ public class UsuarioController {
     }
 
     @GetMapping("/{id}")
-    public Optional<Usuario> getUsuarioById(
+    public Usuario getUsuarioById(
             @PathVariable Integer id
     ) {
-        return service.getUsuarioById(id);
+        return service
+                .getUsuarioById(id)
+                .orElseThrow();
     }
 
     @PostMapping

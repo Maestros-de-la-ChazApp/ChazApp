@@ -7,11 +7,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/chaceros")
-
 public class ChaceroController {
 
     @Autowired
@@ -23,27 +21,43 @@ public class ChaceroController {
     }
 
     @GetMapping("/{id}")
-    public Optional<Chacero> getChaceroById(@PathVariable Integer id) {
-        return service.getChaceroById(id);
+    public Chacero getChaceroById(
+            @PathVariable Integer id
+    ) {
+        return service
+                .getChaceroById(id)
+                .orElseThrow();
     }
 
     @PostMapping
-    public Chacero createChacero(@RequestBody Chacero chacero) {
+    public Chacero createChacero(
+            @RequestBody Chacero chacero
+    ) {
         return service.createChacero(chacero);
     }
 
     @GetMapping("/cedula/{cedula}")
-    public Optional<Chacero> getByCedula(@PathVariable String cedula) {
-        return service.findByCedula(cedula);
+    public Chacero getByCedula(
+            @PathVariable String cedula
+    ) {
+        return service
+                .findByCedula(cedula)
+                .orElseThrow();
     }
 
     @GetMapping("/correo/{correo}")
-    public Optional<Chacero> getByCorreo(@PathVariable String correo) {
-        return service.findByCorreo(correo);
+    public Chacero getByCorreo(
+            @PathVariable String correo
+    ) {
+        return service
+                .findByCorreo(correo)
+                .orElseThrow();
     }
 
     @DeleteMapping("/{id}")
-    public void deleteChacero(@PathVariable Integer id) {
+    public void deleteChacero(
+            @PathVariable Integer id
+    ) {
         service.deleteChacero(id);
     }
 

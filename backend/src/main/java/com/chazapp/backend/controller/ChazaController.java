@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/chazas")
@@ -22,10 +21,12 @@ public class ChazaController {
     }
 
     @GetMapping("/{id}")
-    public Optional<Chaza> getChazaById(
+    public Chaza getChazaById(
             @PathVariable Integer id
     ) {
-        return service.getChazaById(id);
+        return service
+                .getChazaById(id)
+                .orElseThrow();
     }
 
     @PostMapping
