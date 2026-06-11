@@ -32,6 +32,4 @@ public class Chacero {
     private String rolUniversitario;
 
     private String notas;
-
-    private Integer id_usuario;
 }
