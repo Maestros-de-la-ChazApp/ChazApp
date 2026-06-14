@@ -1,5 +1,7 @@
 package com.chazapp.backend.controller;
 
+import com.chazapp.backend.dto.ChazaRequest;
+import com.chazapp.backend.dto.ChazaResponse;
 import com.chazapp.backend.entity.Chaza;
 import com.chazapp.backend.service.ChazaService;
 
@@ -16,8 +18,8 @@ public class ChazaController {
     private ChazaService service;
 
     @GetMapping
-    public List<Chaza> getAllChazas() {
-        return service.getAllChazas();
+    public List<ChazaResponse> getAllChazas() {
+        return service.getAllChazasResponse();
     }
 
     @GetMapping("/{id}")
@@ -31,9 +33,9 @@ public class ChazaController {
 
     @PostMapping
     public Chaza createChaza(
-            @RequestBody Chaza chaza
+            @RequestBody ChazaRequest request
     ) {
-        return service.createChaza(chaza);
+        return service.createChaza(request);
     }
 
     @PutMapping("/{id}")

@@ -23,6 +23,8 @@ public class Chaza {
 
     private Integer id_chacero;
 
+    private String nombre_chaza;
+
     private String qr_code;
 
     private String producto;

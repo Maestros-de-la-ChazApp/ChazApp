@@ -38,7 +38,7 @@ public class GlobalExceptionHandler {
                 .body(
                         Map.of(
                                 "error",
-                                "Conflicto de integridad de datos"
+                                e.getMostSpecificCause().getMessage()
                         )
                 );
     }
@@ -49,7 +49,7 @@ public class GlobalExceptionHandler {
     ) {
 
         return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
+                .status(HttpStatus.CONFLICT)
                 .body(
                         Map.of(
                                 "error",
