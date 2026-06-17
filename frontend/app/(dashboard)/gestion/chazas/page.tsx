@@ -16,6 +16,50 @@ import {
   OPCIONES_COCINA
 } from "@/constants";
 
+const getSanctionLabel = (sancion: string | undefined, id: number): string => {
+  if (sancion) {
+    switch (sancion.toLowerCase()) {
+      case "llamado_atencion":
+      case "llamado de atención":
+        return "Llamado de atención";
+      case "no_ingresa_jueves":
+      case "no ingresa el siguiente jueves":
+        return "No ingresa el siguiente jueves";
+      case "no_ingresa_semana":
+      case "no ingresa una semana":
+        return "No ingresa una semana";
+      case "bloqueo_indefinido":
+      case "bloqueo indefinido":
+        return "Bloqueo indefinido";
+      default:
+        return "Ok";
+    }
+  }
+  const mockLabels = [
+    "Ok",
+    "Llamado de atención",
+    "No ingresa el siguiente jueves",
+    "No ingresa una semana",
+    "Bloqueo indefinido"
+  ];
+  return mockLabels[id % mockLabels.length];
+};
+
+const getSanctionColor = (label: string): string => {
+  switch (label) {
+    case "Llamado de atención":
+      return "bg-warning-200";
+    case "No ingresa el siguiente jueves":
+      return "bg-warning-300";
+    case "No ingresa una semana":
+      return "bg-alert-200";
+    case "Bloqueo indefinido":
+      return "bg-neutral-1000";
+    default:
+      return "bg-primary-300";
+  }
+};
+
 export const ChazasPage: FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -357,6 +401,17 @@ export const ChazasPage: FC = () => {
               tertiaryText={chaza.ubicacion}
               icon={Store}
               onEdit={(id) => handleOpenEditModal(Number(id))}
+              rightElement={
+                (() => {
+                  const label = getSanctionLabel(chaza.sancion || chaza.sancionTipo || chaza.estadoSancion, chaza.idChaza);
+                  return (
+                    <div 
+                      className={`w-3.5 h-3.5 rounded-full ${getSanctionColor(label)}`}
+                      title={label}
+                    />
+                  );
+                })()
+              }
             />
           ))}
         </ListContainer>

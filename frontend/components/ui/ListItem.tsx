@@ -9,7 +9,8 @@ export const ListItem = ({
   secondaryText,
   tertiaryText,
   icon: Icon,
-  onEdit
+  onEdit,
+  rightElement
 }: ListItemProps) => {
   return (
     <div className="w-full bg-white border border-neutral-200 px-4 py-3 flex items-center justify-between gap-4 transition-all hover:bg-neutral-100/50 rounded-tl-xl rounded-br-xl rounded-tr-xs rounded-bl-xs shadow-xs">
@@ -38,15 +39,18 @@ export const ListItem = ({
         </div>
       </div>
 
-      {onEdit && (
-        <button
-          onClick={() => onEdit(id)}
-          className="p-2 rounded-lg text-neutral-600 hover:bg-neutral-200 hover:text-neutral-1000 transition-all flex-shrink-0"
-          title="Editar"
-        >
-          <Pencil size={18} className="stroke-[2.5]" />
-        </button>
-      )}
+      <div className="flex items-center gap-2 flex-shrink-0">
+        {rightElement}
+        {onEdit && (
+          <button
+            onClick={() => onEdit(id)}
+            className="p-2 rounded-lg text-neutral-600 hover:bg-neutral-200 hover:text-neutral-1000 transition-all"
+            title="Editar"
+          >
+            <Pencil size={18} className="stroke-[2.5]" />
+          </button>
+        )}
+      </div>
     </div>
   );
 };

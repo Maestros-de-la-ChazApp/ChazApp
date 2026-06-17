@@ -40,6 +40,7 @@ export interface ListItemProps {
   tertiaryText?: string;
   icon?: LucideIcon | ElementType;
   onEdit?: (id: string) => void;
+  rightElement?: React.ReactNode;
 }
 
 export interface FormField {
