@@ -1,13 +1,16 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { LayoutDashboard, ScanLine, Database, Menu, ChevronLeft, LogOut, Settings, Store } from "lucide-react";
 
-export const Navbar = () => {
+interface NavbarProps {
+  isSidebarOpen: boolean;
+  setIsSidebarOpen: (isOpen: boolean) => void;
+}
+
+export const Navbar = ({ isSidebarOpen, setIsSidebarOpen }: NavbarProps) => {
   const router = useRouter();
   const pathname = usePathname();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   const navItems = [
     { name: "Inicio", path: "/dashboard", icon: LayoutDashboard },
@@ -92,13 +95,6 @@ export const Navbar = () => {
           </button>
         </div>
       </aside>
-
-      {/* Espaciador dinámico para el contenedor de las páginas en Desktop */}
-      <div
-        className={`hidden md:block transition-all duration-300 ${
-          isSidebarOpen ? "pl-64" : "pl-20"
-        }`}
-      />
     </>
   );
 };

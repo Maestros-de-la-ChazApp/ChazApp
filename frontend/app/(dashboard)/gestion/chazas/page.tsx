@@ -320,7 +320,7 @@ export const ChazasPage: FC = () => {
         </div>
 
         <Button
-          variant="info"
+          variant="primary"
           shape="asymmetric"
           icon={Plus}
           onClick={handleOpenCreateModal}

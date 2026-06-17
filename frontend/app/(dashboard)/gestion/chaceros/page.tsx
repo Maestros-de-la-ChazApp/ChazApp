@@ -307,7 +307,7 @@ export const ChacerosPage: FC<IChacerosPageProps> = (props) => {
           </div>
 
           <Button
-            variant="info"
+            variant="primary"
             shape="asymmetric"
             icon={Plus}
             onClick={handleOpenCreateModal}
