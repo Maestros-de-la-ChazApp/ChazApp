@@ -47,7 +47,9 @@ export const ChacerosPage: FC<IChacerosPageProps> = (props) => {
       }
     })
       .then((response) => {
-        if (!response.ok) throw new Error("Error fetching chaceros");
+        if (!response.ok) {
+          throw new Error(`Error fetching chaceros: Status ${response.status} (${response.statusText})`);
+        }
         return response.json();
       })
       .then((data) => {

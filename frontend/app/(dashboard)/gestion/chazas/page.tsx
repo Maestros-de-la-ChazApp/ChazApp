@@ -51,7 +51,9 @@ export const ChazasPage: FC = () => {
       }
     })
       .then((response) => {
-        if (!response.ok) throw new Error("Error fetching chazas");
+        if (!response.ok) {
+          throw new Error(`Error fetching chazas: Status ${response.status} (${response.statusText})`);
+        }
         return response.json();
       })
       .then((data) => {
