@@ -10,6 +10,7 @@ import lombok.Setter;
 public class ChazaResponse {
 
     private Integer idChaza;
+    private String nombreChaza;
     private String nombreChacero;
     private String correoChacero;
     private String producto;

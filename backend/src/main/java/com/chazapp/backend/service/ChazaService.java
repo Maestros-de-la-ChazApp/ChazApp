@@ -127,18 +127,6 @@ public class ChazaService {
                 chazaActualizada.getTiene_cocina()
         );
 
-        chaza.setDentro(
-                chazaActualizada.getDentro()
-        );
-
-        chaza.setSuspendida(
-                chazaActualizada.getSuspendida()
-        );
-
-        chaza.setFecha_fin_sancion(
-                chazaActualizada.getFecha_fin_sancion()
-        );
-
         chaza.setObservaciones(
                 chazaActualizada.getObservaciones()
         );
@@ -165,6 +153,7 @@ public class ChazaService {
 
                     return new ChazaResponse(
                             chaza.getId_chaza(),
+                            chaza.getNombre_chaza(),
                             chacero.getNombre() + " " + chacero.getApellido(),
                             chacero.getCorreoInstitucional(),
                             chaza.getProducto(),

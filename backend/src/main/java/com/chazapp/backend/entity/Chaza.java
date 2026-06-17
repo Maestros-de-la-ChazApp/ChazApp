@@ -3,7 +3,6 @@ package com.chazapp.backend.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -34,12 +33,6 @@ public class Chaza {
     private Integer num_carpas;
 
     private Boolean tiene_cocina;
-
-    private Boolean dentro;
-
-    private Boolean suspendida;
-
-    private LocalDate fecha_fin_sancion;
 
     private String observaciones;
 

@@ -336,7 +336,7 @@ export const ChazasPage: FC = () => {
             <ListItem
               key={chaza.idChaza}
               id={chaza.idChaza}
-              primaryText={chaza.producto}
+              primaryText={chaza.nombreChaza}
               secondaryText={
                 chaza.nombreChacero
               }
