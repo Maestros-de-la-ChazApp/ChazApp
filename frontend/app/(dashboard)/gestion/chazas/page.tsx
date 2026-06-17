@@ -50,9 +50,22 @@ export const ChazasPage: FC = () => {
         Authorization: `Bearer ${token}`
       }
     })
-      .then((response) => response.json())
-      .then((data) => setChazas(data))
-      .catch((error) => console.error(error));
+      .then((response) => {
+        if (!response.ok) throw new Error("Error fetching chazas");
+        return response.json();
+      })
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setChazas(data);
+        } else {
+          console.error("Data is not an array:", data);
+          setChazas([]);
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+        setChazas([]);
+      });
   }, [token]);
 
   const handleItemsPerPageChange = (size: number) => {
@@ -300,10 +313,9 @@ export const ChazasPage: FC = () => {
   const indexOfFirstItem =
     indexOfLastItem - itemsPerPage;
 
-  const currentChazas = chazas.slice(
-    indexOfFirstItem,
-    indexOfLastItem
-  );
+  const currentChazas = Array.isArray(chazas)
+    ? chazas.slice(indexOfFirstItem, indexOfLastItem)
+    : [];
 
   return (
     <div className="flex flex-col gap-6 p-4 w-full max-w-5xl mx-auto items-center">
@@ -348,7 +360,7 @@ export const ChazasPage: FC = () => {
         </ListContainer>
 
         <Pagination
-          totalItems={chazas.length}
+          totalItems={Array.isArray(chazas) ? chazas.length : 0}
           currentPage={currentPage}
           itemsPerPage={itemsPerPage}
           onPageChange={setCurrentPage}

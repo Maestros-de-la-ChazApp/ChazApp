@@ -46,9 +46,22 @@ export const ChacerosPage: FC<IChacerosPageProps> = (props) => {
         Authorization: `Bearer ${token}`
       }
     })
-      .then((response) => response.json())
-      .then((data) => setChaceros(data))
-      .catch((error) => console.error(error));
+      .then((response) => {
+        if (!response.ok) throw new Error("Error fetching chaceros");
+        return response.json();
+      })
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setChaceros(data);
+        } else {
+          console.error("Data is not an array:", data);
+          setChaceros([]);
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+        setChaceros([]);
+      });
   }, [token]);
 
   const handleItemsPerPageChange = (size: number) => {
@@ -284,10 +297,9 @@ export const ChacerosPage: FC<IChacerosPageProps> = (props) => {
   const indexOfFirstItem =
     indexOfLastItem - itemsPerPage;
 
-  const currentChaceros = chaceros.slice(
-    indexOfFirstItem,
-    indexOfLastItem
-  );
+  const currentChaceros = Array.isArray(chaceros)
+    ? chaceros.slice(indexOfFirstItem, indexOfLastItem)
+    : [];
 
   return (
     <div className="flex flex-col gap-6 p-4 w-full max-w-5xl mx-auto items-center">
@@ -334,7 +346,7 @@ export const ChacerosPage: FC<IChacerosPageProps> = (props) => {
           </ListContainer>
 
           <Pagination
-            totalItems={chaceros.length}
+            totalItems={Array.isArray(chaceros) ? chaceros.length : 0}
             currentPage={currentPage}
             itemsPerPage={itemsPerPage}
             onPageChange={setCurrentPage}
