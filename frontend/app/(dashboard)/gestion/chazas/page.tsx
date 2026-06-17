@@ -19,6 +19,9 @@ import {
 export const ChazasPage: FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [modalMode, setModalMode] = useState<"create" | "edit">("create");
+  const [selectedChaza, setSelectedChaza] = useState<any | null>(null);
+  const [initialFormData, setInitialFormData] = useState<Record<string, unknown>>({});
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
@@ -62,38 +65,142 @@ export const ChazasPage: FC = () => {
     );
   };
 
-  const handleRegisterSubmit = async (
-    data: Record<string, unknown>
-  ) => {
+  const handleOpenCreateModal = () => {
+    setModalMode("create");
+    setSelectedChaza(null);
+    setInitialFormData({});
+    setIsModalOpen(true);
+  };
+
+  const handleOpenEditModal = async (id: number) => {
+    try {
+      const response = await fetch(`http://localhost:8080/chazas/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      if (!response.ok) throw new Error("Error al obtener la chaza");
+      const chaza = await response.json();
+
+      const listTarget = chazas.find(c => c.idChaza === id);
+
+      setModalMode("edit");
+      setSelectedChaza(chaza);
+      setInitialFormData({
+        nombreChaza: chaza.nombre_chaza || "",
+        emailPropietario: listTarget?.correoChacero || "",
+        tipoProducto: chaza.producto || "",
+        zonaCampus: chaza.ubicacion || "",
+        cantidadCarpas: chaza.num_carpas || 1,
+        cocinaCampus: chaza.tiene_cocina ? "Sí" : "No",
+        observaciones: chaza.observaciones || ""
+      });
+      setIsModalOpen(true);
+    } catch (error) {
+      console.error(error);
+      alert("Error al cargar los datos de la chaza.");
+    }
+  };
+
+  const handleDeleteAction = async () => {
+    if (!selectedChaza) return;
+    const nombreChaza = selectedChaza.nombre_chaza || "esta chaza";
+    if (confirm(`¿Desea eliminar definitivamente este registro (${nombreChaza})?`)) {
+      try {
+        const response = await fetch(
+          `http://localhost:8080/chazas/${selectedChaza.id_chaza}`,
+          {
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Error al eliminar la chaza");
+        }
+
+        const nuevasChazas = await fetch(
+          "http://localhost:8080/chazas",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          }
+        );
+        const listaActualizada = await nuevasChazas.json();
+        setChazas(listaActualizada);
+
+        setIsModalOpen(false);
+        alert("Registro de chaza eliminado permanentemente.");
+      } catch (error) {
+        console.error(error);
+        alert("Error al eliminar la chaza.");
+      }
+    }
+  };
+
+  const handleFormSubmit = async (data: Record<string, unknown>) => {
     setIsSubmitting(true);
 
     try {
-      const payload = {
-        nombreChaza: data.nombreChaza,
-        correoChacero: data.emailPropietario,
-        producto: data.tipoProducto,
-        ubicacion: data.zonaCampus,
-        num_carpas: Number(data.cantidadCarpas),
-        tiene_cocina:
-          data.cocinaCampus === "Sí",
-        observaciones: data.observaciones
-      };
+      if (modalMode === "create") {
+        const payload = {
+          nombreChaza: data.nombreChaza,
+          correoChacero: data.emailPropietario,
+          producto: data.tipoProducto,
+          ubicacion: data.zonaCampus,
+          num_carpas: Number(data.cantidadCarpas),
+          tiene_cocina: data.cocinaCampus === "Sí",
+          observaciones: data.observaciones
+        };
 
-      const response = await fetch(
-        "http://localhost:8080/chazas",
-        {
+        const response = await fetch("http://localhost:8080/chazas", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`
           },
           body: JSON.stringify(payload)
-        }
-      );
+        });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error);
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || "Error al registrar la chaza");
+        }
+      } else {
+        const payload = {
+          id_chaza: selectedChaza.id_chaza,
+          id_chacero: selectedChaza.id_chacero,
+          nombre_chaza: data.nombreChaza,
+          qr_code: selectedChaza.qr_code,
+          producto: data.tipoProducto,
+          ubicacion: data.zonaCampus,
+          num_carpas: Number(data.cantidadCarpas),
+          tiene_cocina: data.cocinaCampus === "Sí",
+          dentro: selectedChaza.dentro,
+          suspendida: selectedChaza.suspendida,
+          fecha_fin_sancion: selectedChaza.fecha_fin_sancion,
+          observaciones: data.observaciones,
+          fecha_registro: selectedChaza.fecha_registro
+        };
+
+        const response = await fetch(
+          `http://localhost:8080/chazas/${selectedChaza.id_chaza}`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify(payload)
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Error al actualizar la chaza");
+        }
       }
 
       const nuevasChazas = await fetch(
@@ -104,24 +211,21 @@ export const ChazasPage: FC = () => {
           }
         }
       );
-
-      const listaActualizada =
-        await nuevasChazas.json();
-
+      const listaActualizada = await nuevasChazas.json();
       setChazas(listaActualizada);
 
       setIsModalOpen(false);
-
       alert(
-        "Chaza registrada con éxito en el sistema."
+        modalMode === "create"
+          ? "Chaza registrada con éxito."
+          : "Chaza actualizada con éxito."
       );
     } catch (error) {
       console.error(error);
-
       alert(
         error instanceof Error
           ? error.message
-          : "Error al registrar la chaza."
+          : "Error al procesar la chaza."
       );
     } finally {
       setIsSubmitting(false);
@@ -219,7 +323,7 @@ export const ChazasPage: FC = () => {
           variant="info"
           shape="asymmetric"
           icon={Plus}
-          onClick={() => setIsModalOpen(true)}
+          onClick={handleOpenCreateModal}
           className="w-full md:w-auto"
         >
           Agregar chaza
@@ -238,12 +342,7 @@ export const ChazasPage: FC = () => {
               }
               tertiaryText={chaza.ubicacion}
               icon={Store}
-              onEdit={(id) =>
-                console.log(
-                  "Editar chaza:",
-                  id
-                )
-              }
+              onEdit={(id) => handleOpenEditModal(Number(id))}
             />
           ))}
         </ListContainer>
@@ -264,12 +363,15 @@ export const ChazasPage: FC = () => {
         onClose={() => setIsModalOpen(false)}
       >
         <Form
-          title="Registro de Chazas"
-          subtitle2="Establezca la ubicación, dimensiones y ofertas comerciales del punto de venta."
+          title={modalMode === "create" ? "Registro de Chazas" : "Editar Chaza"}
+          subtitle2={modalMode === "create" ? "Establezca la ubicación, dimensiones y ofertas comerciales." : "Modifique los parámetros del puesto comercial."}
           fields={fieldsConfig}
-          submitLabel="Registrar punto"
-          onSubmit={handleRegisterSubmit}
+          submitLabel={modalMode === "create" ? "Registrar punto" : "Actualizar"}
+          onSubmit={handleFormSubmit}
           onCancel={() => setIsModalOpen(false)}
+          onDelete={modalMode === "edit" ? handleDeleteAction : undefined}
+          deleteLabel="Eliminar Chaza"
+          initialData={initialFormData}
           isLoading={isSubmitting}
         />
       </Modal>

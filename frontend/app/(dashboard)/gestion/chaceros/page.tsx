@@ -15,6 +15,9 @@ import { FACULTADES_UNAL, ROLES_CHACEROS } from "@/constants";
 export const ChacerosPage: FC<IChacerosPageProps> = (props) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [modalMode, setModalMode] = useState<"create" | "edit">("create");
+  const [selectedChacero, setSelectedChacero] = useState<any | null>(null);
+  const [initialFormData, setInitialFormData] = useState<Record<string, unknown>>({});
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
@@ -57,9 +60,78 @@ export const ChacerosPage: FC<IChacerosPageProps> = (props) => {
     );
   };
 
-  const handleRegisterSubmit = async (
-    data: Record<string, unknown>
-  ) => {
+  const handleOpenCreateModal = () => {
+    setModalMode("create");
+    setSelectedChacero(null);
+    setInitialFormData({});
+    setIsModalOpen(true);
+  };
+
+  const handleOpenEditModal = (id: number) => {
+    const target = chaceros.find((c) => c.id_chacero === id);
+    if (!target) return;
+
+    setModalMode("edit");
+    setSelectedChacero(target);
+    setInitialFormData({
+      nombre: target.nombre || "",
+      apellido: target.apellido || "",
+      cedula: target.cedula || "",
+      email: target.correoInstitucional || "",
+      celular: target.telefono || "",
+      facultad: target.facultad || "",
+      carrera: target.carrera || "",
+      rol: target.rolUniversitario || "",
+      chazaEmailId: "",
+      amountChazas: 1
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleDeleteAction = async () => {
+    if (!selectedChacero) return;
+    const nombreCompleto = `${selectedChacero.nombre} ${selectedChacero.apellido}`;
+    if (
+      confirm(
+        `¿Desea eliminar definitivamente este registro (${nombreCompleto})?`
+      )
+    ) {
+      try {
+        const response = await fetch(
+          `http://localhost:8080/chaceros/${selectedChacero.id_chacero}`,
+          {
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Error al eliminar chacero");
+        }
+
+        const nuevosChaceros = await fetch(
+          "http://localhost:8080/chaceros",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          }
+        );
+        const listaActualizada = await nuevosChaceros.json();
+        setChaceros(listaActualizada);
+
+        setIsModalOpen(false);
+        alert("Registro eliminado permanentemente.");
+      } catch (error) {
+        console.error(error);
+        alert("Error al eliminar el registro.");
+      }
+    }
+  };
+
+  const handleFormSubmit = async (data: Record<string, unknown>) => {
     setIsSubmitting(true);
 
     try {
@@ -74,20 +146,27 @@ export const ChacerosPage: FC<IChacerosPageProps> = (props) => {
         rolUniversitario: data.rol
       };
 
-      const response = await fetch(
-        "http://localhost:8080/chaceros",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`
-          },
-          body: JSON.stringify(payload)
-        }
-      );
+      const url =
+        modalMode === "create"
+          ? "http://localhost:8080/chaceros"
+          : `http://localhost:8080/chaceros/${selectedChacero.id_chacero}`;
+      const method = modalMode === "create" ? "POST" : "PUT";
+
+      const response = await fetch(url, {
+        method: method,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+      });
 
       if (!response.ok) {
-        throw new Error("Error al registrar chacero");
+        throw new Error(
+          `Error al ${
+            modalMode === "create" ? "registrar" : "actualizar"
+          } chacero`
+        );
       }
 
       const nuevosChaceros = await fetch(
@@ -99,16 +178,22 @@ export const ChacerosPage: FC<IChacerosPageProps> = (props) => {
         }
       );
 
-      const listaActualizada =
-        await nuevosChaceros.json();
-
+      const listaActualizada = await nuevosChaceros.json();
       setChaceros(listaActualizada);
 
       setIsModalOpen(false);
-      alert("Chacero/a registrado con éxito.");
+      alert(
+        modalMode === "create"
+          ? "Chacero/a registrado con éxito."
+          : "Chacero/a actualizado con éxito."
+      );
     } catch (error) {
       console.error(error);
-      alert("Error al registrar chacero.");
+      alert(
+        `Error al ${
+          modalMode === "create" ? "registrar" : "actualizar"
+        } chacero.`
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -225,7 +310,7 @@ export const ChacerosPage: FC<IChacerosPageProps> = (props) => {
             variant="info"
             shape="asymmetric"
             icon={Plus}
-            onClick={() => setIsModalOpen(true)}
+            onClick={handleOpenCreateModal}
           >
             Agregar chacero/a
           </Button>
@@ -245,7 +330,7 @@ export const ChacerosPage: FC<IChacerosPageProps> = (props) => {
                   chacero.rolUniversitario
                 }
                 icon={CircleUserRound}
-                onEdit={(id) => console.log(id)}
+                onEdit={(id) => handleOpenEditModal(Number(id))}
               />
             ))}
           </ListContainer>
@@ -266,12 +351,15 @@ export const ChacerosPage: FC<IChacerosPageProps> = (props) => {
           onClose={() => setIsModalOpen(false)}
         >
           <Form
-            title="Registro de Chaceros"
-            subtitle2="Ingrese las credenciales del colaborador de la chaza."
+            title={modalMode === "create" ? "Registro de Chaceros" : "Editar Chacero/a"}
+            subtitle2={modalMode === "create" ? "Ingrese las credenciales del colaborador de la chaza." : "Modifique los parámetros del registro de personal."}
             fields={fieldsConfig}
-            submitLabel="Registrar"
-            onSubmit={handleRegisterSubmit}
+            submitLabel={modalMode === "create" ? "Registrar" : "Actualizar"}
+            onSubmit={handleFormSubmit}
             onCancel={() => setIsModalOpen(false)}
+            onDelete={modalMode === "edit" ? handleDeleteAction : undefined}
+            deleteLabel="Eliminar Registro"
+            initialData={initialFormData}
             isLoading={isSubmitting}
           />
         </Modal>

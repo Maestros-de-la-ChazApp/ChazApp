@@ -11,6 +11,10 @@ import { CARRERAS_POR_FACULTAD } from "@/constants";
 
 interface EnhancedFormProps extends DynamicFormProps {
   onCancel?: () => void;
+  initialData?: Record<string, unknown>;
+  onDelete?: () => void;
+  deleteLabel?: string;
+  submitIcon?: any;
 }
 
 export const Form = ({
@@ -20,14 +24,43 @@ export const Form = ({
   submitLabel,
   onSubmit,
   onCancel,
+  initialData,
+  onDelete,
+  deleteLabel = "Eliminar",
+  submitIcon: SubmitIcon = Plus,
   isLoading = false
 }: EnhancedFormProps) => {
-  const [formData, setFormData] = useState<Record<string, unknown>>({});
+  const [formData, setFormData] = useState<Record<string, unknown>>(initialData || {});
   const [dynamicFields, setDynamicFields] = useState<FormField[]>(fields);
   const [showScrollUp, setShowScrollUp] = useState(false);
   const [showScrollDown, setShowScrollDown] = useState(false);
   
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (initialData) {
+      setFormData(initialData);
+      if (initialData.facultad) {
+        const facultadSeleccionada = initialData.facultad as string;
+        setDynamicFields(
+          fields.map((field) => {
+            if (field.name === "carrera") {
+              return {
+                ...field,
+                options: CARRERAS_POR_FACULTAD[facultadSeleccionada] || [],
+              };
+            }
+            return field;
+          })
+        );
+      } else {
+        setDynamicFields(fields);
+      }
+    } else {
+      setFormData({});
+      setDynamicFields(fields);
+    }
+  }, [initialData, fields]);
 
   const handleChange = (name: string, value: unknown) => {
     setFormData((prev) => {
@@ -153,30 +186,45 @@ export const Form = ({
           </div>
         )}
 
-        <div className="flex items-center justify-end gap-3 mt-2 w-full">
-          {onCancel && (
+        <div className="flex items-center justify-between mt-2 w-full">
+          <div>
+            {onDelete && (
+              <Button
+                type="button"
+                variant="danger"
+                shape="standard"
+                onClick={onDelete}
+                className="px-4 py-2"
+              >
+                {deleteLabel}
+              </Button>
+            )}
+          </div>
+          <div className="flex items-center gap-3">
+            {onCancel && (
+              <Button 
+                type="button" 
+                variant="outline" 
+                shape="standard" 
+                icon={X} 
+                onClick={onCancel}
+                className="px-4 py-2"
+              >
+                Cancelar
+              </Button>
+            )}
+            
             <Button 
-              type="button" 
-              variant="danger" 
-              shape="standard" 
-              icon={X} 
-              onClick={onCancel}
-              className="px-4 py-2"
+              type="submit" 
+              variant="primary" 
+              shape="asymmetric" 
+              icon={SubmitIcon} 
+              isLoading={isLoading} 
+              className="px-5 py-2"
             >
-              Cancelar
+              {submitLabel}
             </Button>
-          )}
-          
-          <Button 
-            type="submit" 
-            variant="primary" 
-            shape="asymmetric" 
-            icon={Plus} 
-            isLoading={isLoading} 
-            className="px-5 py-2"
-          >
-            {submitLabel}
-          </Button>
+          </div>
         </div>
       </form>
     </div>
