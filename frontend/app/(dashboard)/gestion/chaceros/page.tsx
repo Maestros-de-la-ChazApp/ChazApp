@@ -158,7 +158,8 @@ export const ChacerosPage: FC<IChacerosPageProps> = (props) => {
         telefono: data.celular,
         facultad: data.facultad,
         carrera: data.carrera,
-        rolUniversitario: data.rol
+        rolUniversitario: data.rol,
+        chazaEmailId: data.chazaEmailId
       };
 
       const url =

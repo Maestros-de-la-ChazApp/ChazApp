@@ -32,4 +32,7 @@ public class Chacero {
     private String rolUniversitario;
 
     private String notas;
+
+    @Transient
+    private String chazaEmailId;
 }

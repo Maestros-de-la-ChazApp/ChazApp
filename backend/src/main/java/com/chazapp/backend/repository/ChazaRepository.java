@@ -4,6 +4,8 @@ import com.chazapp.backend.entity.Chaza;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.Optional;
+
 public interface ChazaRepository
         extends JpaRepository<Chaza, Integer> {
 
@@ -13,4 +15,12 @@ public interface ChazaRepository
         WHERE c.id_chacero = :idChacero
     """)
     boolean existsChazaByChacero(Integer idChacero);
+
+    @Query("""
+        SELECT c
+        FROM Chaza c
+        JOIN Chacero ch ON ch.id_chacero = c.id_chacero
+        WHERE ch.correoInstitucional = :correo
+    """)
+    Optional<Chaza> findByCorreoPropietario(String correo);
 }
