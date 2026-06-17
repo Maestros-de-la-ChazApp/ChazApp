@@ -13,7 +13,7 @@ export default function Home() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
+
     try {
       const response = await fetch(
         'http://localhost:8080/usuarios/login',
@@ -29,19 +29,19 @@ export default function Home() {
         }
       );
 
-      const tokenPlano = await response.text(); 
-  console.log("Token recibido exitosamente:", tokenPlano);
+      const tokenPlano = await response.text();
+      console.log("Token recibido exitosamente:", tokenPlano);
 
-  if (tokenPlano && tokenPlano.trim() !== "") {
-    // 2. Guardar el token crudo directamente en el almacenamiento
-    localStorage.setItem("token", tokenPlano);
-    localStorage.setItem("userEmail", formData.usuario); 
-    
-    // 3. Redirección inmediata al dashboard
-    router.push("/dashboard");
-  } else {
-    alert("El servidor devolvió una respuesta vacía");
-  }
+      if (tokenPlano && tokenPlano.trim() !== "") {
+        // 2. Guardar el token crudo directamente en el almacenamiento
+        localStorage.setItem("token", tokenPlano);
+        localStorage.setItem("userEmail", formData.usuario);
+
+        // 3. Redirección inmediata al dashboard
+        router.push("/dashboard");
+      } else {
+        alert("El servidor devolvió una respuesta vacía");
+      }
     } catch (error) {
       console.error("Error en la petición:", error);
     } finally {
@@ -66,9 +66,9 @@ export default function Home() {
                     <div className="absolute inset-y-0 left-0 flex items-center pl-3">
                       <Users className="text-primary-100" />
                     </div>
-                    <input id="input" type="text" placeholder="Usuario" value={formData.usuario} onChange={(e) => setFormData({...formData, usuario: e.target.value})} className="bg-neutral-50 border border-neutral-500 rounded-tl-md rounded-tr-xl rounded-br-md rounded-bl-xl px-2 py-3 w-full pl-12" />
+                    <input id="input" type="text" placeholder="Usuario" value={formData.usuario} onChange={(e) => setFormData({ ...formData, usuario: e.target.value })} className="bg-neutral-50 border border-neutral-500 rounded-tl-md rounded-tr-xl rounded-br-md rounded-bl-xl px-2 py-3 w-full pl-12" />
                   </div>
-                  <Info className="text-primary-100" size={24}/>
+                  <Info className="text-primary-100" size={24} />
                 </div>
                 <p className="text-sm text-neutral-500">Este es un mensaje de ayuda</p>
               </div>
@@ -79,9 +79,9 @@ export default function Home() {
                     <div className="absolute inset-y-0 left-0 flex items-center pl-3">
                       <LockKeyhole className="text-primary-100" />
                     </div>
-                    <input id="input" type="password" placeholder="Contraseña" value={formData.password} onChange={(e) => setFormData({...formData, password: e.target.value})} className="bg-neutral-50 border border-neutral-500 rounded-tl-md rounded-tr-xl rounded-br-md rounded-bl-xl px-2 py-3 w-full pl-12" />
+                    <input id="input" type="password" placeholder="Contraseña" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} className="bg-neutral-50 border border-neutral-500 rounded-tl-md rounded-tr-xl rounded-br-md rounded-bl-xl px-2 py-3 w-full pl-12" />
                   </div>
-                  <Info className="text-primary-100" size={24}/>
+                  <Info className="text-primary-100" size={24} />
                 </div>
                 <p className="text-sm text-neutral-500">Este es un mensaje de ayuda</p>
               </div>

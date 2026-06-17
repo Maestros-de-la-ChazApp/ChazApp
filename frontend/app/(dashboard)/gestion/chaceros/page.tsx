@@ -163,8 +163,7 @@ export const ChacerosPage: FC<IChacerosPageProps> = (props) => {
 
       if (!response.ok) {
         throw new Error(
-          `Error al ${
-            modalMode === "create" ? "registrar" : "actualizar"
+          `Error al ${modalMode === "create" ? "registrar" : "actualizar"
           } chacero`
         );
       }
@@ -190,8 +189,7 @@ export const ChacerosPage: FC<IChacerosPageProps> = (props) => {
     } catch (error) {
       console.error(error);
       alert(
-        `Error al ${
-          modalMode === "create" ? "registrar" : "actualizar"
+        `Error al ${modalMode === "create" ? "registrar" : "actualizar"
         } chacero.`
       );
     } finally {
