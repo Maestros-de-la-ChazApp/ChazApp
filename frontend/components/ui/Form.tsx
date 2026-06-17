@@ -157,6 +157,39 @@ export const Form = ({
                     onChange={(e) => handleChange(field.name, e.target.checked)}
                   />
                 );
+              case "multiselect":
+                const selectedValues = (formData[field.name] as string[]) || [];
+                return (
+                  <div key={field.name} className="flex flex-col gap-1.5 text-left w-full">
+                    <label className="text-xs font-bold text-neutral-800">
+                      {field.label} {field.required && <span className="text-alert-300">*</span>}
+                    </label>
+                    <div className="flex flex-col gap-2 bg-neutral-100/30 border border-neutral-400 p-3 rounded-tl-xl rounded-br-xl rounded-tr-sm rounded-bl-sm max-h-40 overflow-y-auto">
+                      {field.options?.map((opt) => {
+                        const isChecked = selectedValues.includes(String(opt.value));
+                        return (
+                          <label key={opt.value} className="flex items-center gap-2.5 text-sm text-neutral-1000 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={(e) => {
+                                let newValues = [...selectedValues];
+                                if (e.target.checked) {
+                                  newValues.push(String(opt.value));
+                                } else {
+                                  newValues = newValues.filter((v) => v !== String(opt.value));
+                                }
+                                handleChange(field.name, newValues);
+                              }}
+                              className="w-4 h-4 accent-primary-200 border-neutral-400 rounded focus:ring-primary-200"
+                            />
+                            <span>{opt.label}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
               default:
                 return (
                   <Input
