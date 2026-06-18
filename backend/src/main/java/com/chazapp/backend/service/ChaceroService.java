@@ -27,12 +27,13 @@ public class ChaceroService {
     private TrabajadorChazaRepository trabajadorChazaRepository;
 
     private void populateChazaEmailId(Chacero chacero) {
-        if (chacero == null) return;
+        if (chacero == null)
+            return;
         if ("trabajador".equalsIgnoreCase(chacero.getRolUniversitario())) {
             List<TrabajadorChaza> relations = trabajadorChazaRepository.findAll();
             Optional<TrabajadorChaza> relation = relations.stream()
-                .filter(r -> r.getId_chacero().equals(chacero.getId_chacero()))
-                .findFirst();
+                    .filter(r -> r.getId_chacero().equals(chacero.getId_chacero()))
+                    .findFirst();
             if (relation.isPresent()) {
                 Optional<Chaza> chaza = chazaRepository.findById(relation.get().getId_chaza());
                 if (chaza.isPresent()) {
@@ -63,47 +64,34 @@ public class ChaceroService {
 
         System.out.println(
                 "CHAZA EMAIL: " +
-                        chacero.getChazaEmailId()
-        );
+                        chacero.getChazaEmailId());
 
-        Chacero nuevoChacero =
-                repository.save(chacero);
+        Chacero nuevoChacero = repository.save(chacero);
 
-        if (
-                "trabajador".equalsIgnoreCase(
-                        chacero.getRolUniversitario()
-                )
-                        &&
-                        chacero.getChazaEmailId() != null
-                        &&
-                        !chacero.getChazaEmailId().isBlank()
-        ) {
+        if ("trabajador".equalsIgnoreCase(
+                chacero.getRolUniversitario())
+                &&
+                chacero.getChazaEmailId() != null
+                &&
+                !chacero.getChazaEmailId().isBlank()) {
 
-            Chaza chaza =
-                    chazaRepository
-                            .findByCorreoPropietario(
-                                    chacero.getChazaEmailId()
-                            )
-                            .orElseThrow(
-                                    () -> new IllegalArgumentException(
-                                            "No existe una chaza asociada a ese correo"
-                                     )
-                            );
+            Chaza chaza = chazaRepository
+                    .findByCorreoPropietario(
+                            chacero.getChazaEmailId())
+                    .orElseThrow(
+                            () -> new IllegalArgumentException(
+                                    "No existe una chaza asociada a ese correo"));
 
-            TrabajadorChaza relacion =
-                    new TrabajadorChaza();
+            TrabajadorChaza relacion = new TrabajadorChaza();
 
             relacion.setId_chacero(
-                    nuevoChacero.getId_chacero()
-            );
+                    nuevoChacero.getId_chacero());
 
             relacion.setId_chaza(
-                    chaza.getId_chaza()
-            );
+                    chaza.getId_chaza());
 
             trabajadorChazaRepository.save(
-                    relacion
-            );
+                    relacion);
         }
 
         return nuevoChacero;
