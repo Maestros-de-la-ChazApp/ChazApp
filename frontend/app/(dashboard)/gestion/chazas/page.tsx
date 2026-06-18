@@ -1,6 +1,8 @@
 "use client";
 
 import { FC, useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { FormField } from "@/types";
 import { Plus, Store } from "lucide-react";
 import { Button } from "@/components/ui/Button";
@@ -9,6 +11,7 @@ import { Form } from "@/components/ui/Form";
 import { ListItem } from "@/components/ui/ListItem";
 import { ListContainer } from "@/components/ui/ListContainer";
 import { Pagination } from "@/components/ui/Pagination";
+import { DetailCard } from "@/components/ui/DetailCard";
 
 import {
   PRODUCTOS_CHAZA,
@@ -60,7 +63,22 @@ const getSanctionColor = (label: string): string => {
   }
 };
 
+const formatDate = (dateString: string | undefined): string => {
+  if (!dateString) return "No disponible";
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return dateString;
+    return date.toLocaleString("es-CO", {
+      dateStyle: "medium",
+      timeStyle: "short"
+    });
+  } catch (e) {
+    return dateString;
+  }
+};
+
 export const ChazasPage: FC = () => {
+  const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [modalMode, setModalMode] = useState<"create" | "edit">("create");
@@ -73,9 +91,21 @@ export const ChazasPage: FC = () => {
   const [chazas, setChazas] = useState<any[]>([]);
   const [token, setToken] = useState<string | null>(null);
 
+  const searchParams = useSearchParams();
+  const viewId = searchParams.get("view");
+
   useEffect(() => {
     setToken(localStorage.getItem("token"));
   }, []);
+
+  useEffect(() => {
+    if (viewId && chazas.length > 0) {
+      const targetId = Number(viewId);
+      if (!isNaN(targetId)) {
+        handleOpenDetailModal(targetId);
+      }
+    }
+  }, [viewId, chazas]);
 
   useEffect(() => {
     if (!token) {
@@ -124,11 +154,55 @@ export const ChazasPage: FC = () => {
     );
   };
 
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [detailChaza, setDetailChaza] = useState<any | null>(null);
+
   const handleOpenCreateModal = () => {
     setModalMode("create");
     setSelectedChaza(null);
     setInitialFormData({});
     setIsModalOpen(true);
+  };
+
+  const handleOpenDetailModal = async (id: number) => {
+    try {
+      const response = await fetch(`http://localhost:8080/chazas/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      if (!response.ok) throw new Error("Error al obtener la chaza");
+      const chaza = await response.json();
+
+      const listTarget = chazas.find(c => c.idChaza === id);
+      const ownerEmail = listTarget?.correoChacero || "";
+
+      // Fetch all chaceros to filter the ones working in this chaza
+      const chacerosResponse = await fetch("http://localhost:8080/chaceros", {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      let trabajadores: any[] = [];
+      if (chacerosResponse.ok) {
+        const chacerosList = await chacerosResponse.json();
+        trabajadores = chacerosList.filter(
+          (c: any) => c.chazaEmailId === ownerEmail && c.rolUniversitario?.toLowerCase() === "trabajador"
+        );
+      }
+
+      setDetailChaza({
+        ...chaza,
+        nombreChacero: listTarget?.nombreChacero || "",
+        correoChacero: ownerEmail,
+        sancion: listTarget?.sancion || listTarget?.sancionTipo || listTarget?.estadoSancion,
+        trabajadores: trabajadores
+      });
+      setIsDetailOpen(true);
+    } catch (error) {
+      console.error(error);
+      alert("Error al cargar los detalles de la chaza.");
+    }
   };
 
   const handleOpenEditModal = async (id: number) => {
@@ -400,7 +474,7 @@ export const ChazasPage: FC = () => {
               }
               tertiaryText={chaza.ubicacion}
               icon={Store}
-              onEdit={(id) => handleOpenEditModal(Number(id))}
+              onView={(id) => handleOpenDetailModal(Number(id))}
               rightElement={
                 (() => {
                   const label = getSanctionLabel(chaza.sancion || chaza.sancionTipo || chaza.estadoSancion, chaza.idChaza);
@@ -442,6 +516,73 @@ export const ChazasPage: FC = () => {
           deleteLabel="Eliminar Chaza"
           initialData={initialFormData}
           isLoading={isSubmitting}
+        />
+      </Modal>
+
+      <Modal
+        isOpen={isDetailOpen}
+        onClose={() => setIsDetailOpen(false)}
+      >
+        <DetailCard
+          title={detailChaza?.nombre_chaza || "Detalles de la Chaza"}
+          subtitle="Información completa del puesto comercial"
+          icon={Store}
+          onClose={() => setIsDetailOpen(false)}
+          onEdit={detailChaza ? () => {
+            setIsDetailOpen(false);
+            handleOpenEditModal(detailChaza.id_chaza || detailChaza.idChaza);
+          } : undefined}
+          fields={detailChaza ? [
+            { label: "Nombre de la chaza", value: detailChaza.nombre_chaza || detailChaza.nombreChaza, fullWidth: true },
+            { label: "Estudiante Propietario", value: detailChaza.nombreChacero || "No especificado" },
+            { label: "Correo Propietario", value: detailChaza.correoChacero || "No especificado" },
+            { label: "Tipo de Producto", value: detailChaza.producto },
+            { label: "Ubicación", value: detailChaza.ubicacion },
+            { label: "Cantidad de Carpas", value: detailChaza.num_carpas || detailChaza.numCarpas },
+            { label: "Cocina en el Campus", value: detailChaza.tiene_cocina || detailChaza.tieneCocina ? "Sí" : "No" },
+            { 
+              label: "Estado de Sanción", 
+              value: (() => {
+                const label = getSanctionLabel(detailChaza.sancion || detailChaza.sancionTipo || detailChaza.estadoSancion, detailChaza.idChaza || detailChaza.id_chaza);
+                return (
+                  <div className="flex items-center gap-2 mt-1">
+                    <div className={`w-3.5 h-3.5 rounded-full ${getSanctionColor(label)}`} />
+                    <span className="text-xs font-semibold">{label}</span>
+                  </div>
+                );
+              })(),
+              fullWidth: true
+            },
+            { 
+              label: "Fecha de Registro", 
+              value: formatDate(detailChaza.fecha_registro || detailChaza.fechaRegistro),
+              fullWidth: true 
+            },
+            {
+              label: "Chaceros que trabajan aquí",
+              value: detailChaza.trabajadores && detailChaza.trabajadores.length > 0 ? (
+                <div className="flex flex-col gap-1.5 mt-1.5 w-full">
+                  {detailChaza.trabajadores.map((t: any) => (
+                    <Link
+                      key={t.id_chacero}
+                      href={`/gestion/chaceros?view=${t.id_chacero}`}
+                      className="flex items-center gap-2 bg-neutral-100/60 px-3 py-2 rounded-lg border border-neutral-200 hover:bg-primary-300/10 hover:border-primary-200 transition-all text-left w-full cursor-pointer group/worker"
+                    >
+                      <div className="w-2 h-2 rounded-full bg-primary-200 group-hover/worker:bg-primary-300 transition-all" />
+                      <div className="flex flex-col">
+                        <span className="text-xs font-bold text-neutral-1000 group-hover/worker:text-primary-200 transition-all">{t.nombre} {t.apellido}</span>
+                        <span className="text-[10px] text-neutral-500 font-medium">{t.correoInstitucional}</span>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <span className="text-xs text-neutral-400 italic">No hay trabajadores asociados</span>
+              ),
+              fullWidth: true
+            },
+            { label: "Observaciones", value: detailChaza.observaciones, fullWidth: true }
+          ] : []}
         />
       </Modal>
     </div>

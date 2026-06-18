@@ -40,6 +40,7 @@ export interface ListItemProps {
   tertiaryText?: string;
   icon?: LucideIcon | ElementType;
   onEdit?: (id: string) => void;
+  onView?: (id: string) => void;
   rightElement?: React.ReactNode;
 }
 

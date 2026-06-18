@@ -1,18 +1,22 @@
 "use client";
 
 import { FC, useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { IChacerosPageProps, FormField } from "@/types";
-import { Plus, CircleUserRound } from "lucide-react";
+import { Plus, CircleUserRound, Store } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { Form } from "@/components/ui/Form";
 import { ListItem } from "@/components/ui/ListItem";
 import { ListContainer } from "@/components/ui/ListContainer";
 import { Pagination } from "@/components/ui/Pagination";
+import { DetailCard } from "@/components/ui/DetailCard";
 
 import { FACULTADES_UNAL, ROLES_CHACEROS } from "@/constants";
 
 export const ChacerosPage: FC<IChacerosPageProps> = (props) => {
+  const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [modalMode, setModalMode] = useState<"create" | "edit">("create");
@@ -24,9 +28,21 @@ export const ChacerosPage: FC<IChacerosPageProps> = (props) => {
   const [chaceros, setChaceros] = useState<any[]>([]);
   const [token, setToken] = useState<string | null>(null);
 
+  const searchParams = useSearchParams();
+  const viewId = searchParams.get("view");
+
   useEffect(() => {
     setToken(localStorage.getItem("token"));
   }, []);
+
+  useEffect(() => {
+    if (viewId && chaceros.length > 0) {
+      const targetId = Number(viewId);
+      if (!isNaN(targetId)) {
+        handleOpenDetailModal(targetId);
+      }
+    }
+  }, [viewId, chaceros]);
 
   useEffect(() => {
     if (!token) {
@@ -75,11 +91,46 @@ export const ChacerosPage: FC<IChacerosPageProps> = (props) => {
     );
   };
 
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [detailChacero, setDetailChacero] = useState<any | null>(null);
+
   const handleOpenCreateModal = () => {
     setModalMode("create");
     setSelectedChacero(null);
     setInitialFormData({});
     setIsModalOpen(true);
+  };
+
+  const handleOpenDetailModal = async (id: number) => {
+    const target = chaceros.find((c) => c.id_chacero === id);
+    if (!target) return;
+
+    try {
+      const response = await fetch("http://localhost:8080/chazas", {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      let associatedChazas: any[] = [];
+      if (response.ok) {
+        const chazasList = await response.json();
+        associatedChazas = chazasList.filter(
+          (chaza: any) => chaza.correoChacero === target.chazaEmailId
+        );
+      }
+      setDetailChacero({
+        ...target,
+        chazas: associatedChazas
+      });
+      setIsDetailOpen(true);
+    } catch (e) {
+      console.error(e);
+      setDetailChacero({
+        ...target,
+        chazas: []
+      });
+      setIsDetailOpen(true);
+    }
   };
 
   const handleOpenEditModal = (id: number) => {
@@ -343,7 +394,7 @@ export const ChacerosPage: FC<IChacerosPageProps> = (props) => {
                   chacero.rolUniversitario
                 }
                 icon={CircleUserRound}
-                onEdit={(id) => handleOpenEditModal(Number(id))}
+                onView={(id) => handleOpenDetailModal(Number(id))}
               />
             ))}
           </ListContainer>
@@ -374,6 +425,56 @@ export const ChacerosPage: FC<IChacerosPageProps> = (props) => {
             deleteLabel="Eliminar Registro"
             initialData={initialFormData}
             isLoading={isSubmitting}
+          />
+        </Modal>
+
+        <Modal
+          isOpen={isDetailOpen}
+          onClose={() => setIsDetailOpen(false)}
+        >
+          <DetailCard
+            title={detailChacero ? `${detailChacero.nombre} ${detailChacero.apellido}` : "Detalles del Chacero"}
+            subtitle="Información del personal registrado"
+            icon={CircleUserRound}
+            onClose={() => setIsDetailOpen(false)}
+            onEdit={detailChacero ? () => {
+              setIsDetailOpen(false);
+              handleOpenEditModal(detailChacero.id_chacero);
+            } : undefined}
+            fields={detailChacero ? [
+              { label: "Nombre Completo", value: `${detailChacero.nombre} ${detailChacero.apellido}`, fullWidth: true },
+              { label: "Número de Cédula", value: detailChacero.cedula },
+              { label: "Correo Institucional", value: detailChacero.correoInstitucional },
+              { label: "Número de Celular", value: detailChacero.telefono },
+              { label: "Rol del Chacero", value: detailChacero.rolUniversitario },
+              { label: "Facultad", value: detailChacero.facultad },
+              { label: "Carrera", value: detailChacero.carrera },
+              { label: "Correo de la Chaza", value: detailChacero.chazaEmailId || "No asignado", fullWidth: true },
+              {
+                label: "Chazas donde trabaja / Propietario",
+                value: detailChacero.chazas && detailChacero.chazas.length > 0 ? (
+                  <div className="flex flex-col gap-1.5 mt-1.5 w-full">
+                    {detailChacero.chazas.map((chaza: any) => (
+                      <Link
+                        key={chaza.idChaza}
+                        href={`/gestion/chazas?view=${chaza.idChaza}`}
+                        className="flex items-center gap-2 bg-neutral-100/60 px-3 py-2 rounded-lg border border-neutral-200 hover:bg-primary-300/10 hover:border-primary-200 transition-all text-left w-full cursor-pointer group/chaza"
+                      >
+                        <Store className="w-4 h-4 text-primary-200 group-hover/chaza:text-primary-300 transition-all" />
+                        <div className="flex flex-col">
+                          <span className="text-xs font-bold text-neutral-1000 group-hover/chaza:text-primary-200 transition-all">{chaza.nombreChaza}</span>
+                          <span className="text-[10px] text-neutral-500 font-medium">{chaza.ubicacion}</span>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                ) : (
+                  <span className="text-xs text-neutral-400 italic">No hay chazas asociadas</span>
+                ),
+                fullWidth: true
+              },
+              { label: "Notas", value: detailChacero.notas, fullWidth: true }
+            ] : []}
           />
         </Modal>
       </div>

@@ -10,20 +10,34 @@ export const ListItem = ({
   tertiaryText,
   icon: Icon,
   onEdit,
+  onView,
   rightElement
 }: ListItemProps) => {
+  const handleView = () => {
+    if (onView) {
+      onView(id);
+    } else if (onEdit) {
+      onEdit(id);
+    }
+  };
+
+  const isClickable = !!onView || !!onEdit;
+
   return (
     <div className="w-full bg-white border border-neutral-200 px-4 py-3 flex items-center justify-between gap-4 transition-all hover:bg-neutral-100/50 rounded-tl-xl rounded-br-xl rounded-tr-xs rounded-bl-xs shadow-xs">
-      <div className="flex items-center gap-3 flex-1 min-w-0">
+      <div 
+        onClick={isClickable ? handleView : undefined}
+        className={`flex items-center gap-3 flex-1 min-w-0 ${isClickable ? "cursor-pointer group" : ""}`}
+      >
         {Icon && (
-          <div className="bg-primary-300/10 text-primary-200 p-2 rounded-lg flex-shrink-0">
+          <div className="bg-primary-300/10 text-primary-200 p-2 rounded-lg flex-shrink-0 group-hover:bg-primary-300/20 transition-all">
             <Icon size={22} className="stroke-[2]" />
           </div>
         )}
         
         <div className="flex-1 min-w-0 text-left flex flex-col md:flex-row md:items-center md:gap-4">
           <div className="min-w-0 flex-1">
-            <h4 className="text-sm font-bold text-neutral-1000 truncate" title={primaryText}>
+            <h4 className="text-sm font-bold text-neutral-1000 truncate group-hover:text-primary-200 transition-all" title={primaryText}>
               {primaryText}
             </h4>
             <p className="text-xs font-medium text-neutral-600 truncate" title={secondaryText}>
