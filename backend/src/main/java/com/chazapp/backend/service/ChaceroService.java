@@ -27,40 +27,75 @@ public class ChaceroService {
     private TrabajadorChazaRepository trabajadorChazaRepository;
 
     public List<Chacero> getAllChaceros() {
-        List<Chacero> chaceros = repository.findAll();
-        for (Chacero c : chaceros) {
-            populateChazaEmailId(c);
-        }
-        return chaceros;
 
-        List<Chacero> chaceros = repository.findAll();
+        List<Chacero> chaceros =
+                repository.findAll();
+
+        List<Chaza> chazas =
+                chazaRepository.findAll();
+
+        List<TrabajadorChaza> relaciones =
+                trabajadorChazaRepository.findAll();
 
         for (Chacero chacero : chaceros) {
 
-            trabajadorChazaRepository
-                    .findAll()
-                    .stream()
+            relaciones.stream()
                     .filter(
-                            relacion -> relacion.getId_chacero()
+                            r -> r.getId_chacero()
                                     .equals(
-                                            chacero.getId_chacero()))
+                                            chacero.getId_chacero()
+                                    )
+                    )
                     .findFirst()
                     .ifPresent(
                             relacion -> {
 
-                                Chaza chaza = chazaRepository
-                                        .findById(
-                                                relacion.getId_chaza())
-                                        .orElseThrow();
+                                chazas.stream()
+                                        .filter(
+                                                c -> c.getId_chaza()
+                                                        .equals(
+                                                                relacion.getId_chaza()
+                                                        )
+                                        )
+                                        .findFirst()
+                                        .ifPresent(
+                                                chaza -> {
 
-                                Chacero propietario = repository
-                                        .findById(
-                                                chaza.getId_chacero())
-                                        .orElseThrow();
+                                                    chaceros.stream()
+                                                            .filter(
+                                                                    c -> c.getId_chacero()
+                                                                            .equals(
+                                                                                    chaza.getId_chacero()
+                                                                            )
+                                                            )
+                                                            .findFirst()
+                                                            .ifPresent(
+                                                                    propietario ->
+                                                                            chacero.setChazaEmailId(
+                                                                                    propietario.getCorreoInstitucional()
+                                                                            )
+                                                            );
+                                                }
+                                        );
+                            }
+                    );
 
-                                chacero.setChazaEmailId(
-                                        propietario.getCorreoInstitucional());
-                            });
+            if (chacero.getChazaEmailId() == null) {
+
+                chazas.stream()
+                        .filter(
+                                c -> c.getId_chacero()
+                                        .equals(
+                                                chacero.getId_chacero()
+                                        )
+                        )
+                        .findFirst()
+                        .ifPresent(
+                                c -> chacero.setChazaEmailId(
+                                        chacero.getCorreoInstitucional()
+                                )
+                        );
+            }
         }
 
         return chaceros;
@@ -68,7 +103,6 @@ public class ChaceroService {
 
     public Optional<Chacero> getChaceroById(Integer id) {
         Optional<Chacero> chacero = repository.findById(id);
-        chacero.ifPresent(this::populateChazaEmailId);
         return chacero;
     }
 
@@ -111,13 +145,11 @@ public class ChaceroService {
 
     public Optional<Chacero> findByCedula(String cedula) {
         Optional<Chacero> chacero = repository.findByCedula(cedula);
-        chacero.ifPresent(this::populateChazaEmailId);
         return chacero;
     }
 
     public Optional<Chacero> findByCorreo(String correo) {
         Optional<Chacero> chacero = repository.findByCorreoInstitucional(correo);
-        chacero.ifPresent(this::populateChazaEmailId);
         return chacero;
     }
 
@@ -175,7 +207,6 @@ public class ChaceroService {
             }
         }
 
-        populateChazaEmailId(saved);
         return saved;
     }
 }
