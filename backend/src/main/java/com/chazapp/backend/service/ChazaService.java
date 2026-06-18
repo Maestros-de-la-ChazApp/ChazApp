@@ -140,15 +140,24 @@ public class ChazaService {
 
     public List<ChazaResponse> getAllChazasResponse() {
 
-        return repository.findAll()
-                .stream()
+        List<Chaza> chazas =
+                repository.findAll();
+
+        List<Chacero> chaceros =
+                chaceroRepository.findAll();
+
+        return chazas.stream()
                 .map(chaza -> {
 
                     Chacero chacero =
-                            chaceroRepository
-                                    .findById(
-                                            chaza.getId_chacero()
+                            chaceros.stream()
+                                    .filter(
+                                            c -> c.getId_chacero()
+                                                    .equals(
+                                                            chaza.getId_chacero()
+                                                    )
                                     )
+                                    .findFirst()
                                     .orElseThrow();
 
                     return new ChazaResponse(

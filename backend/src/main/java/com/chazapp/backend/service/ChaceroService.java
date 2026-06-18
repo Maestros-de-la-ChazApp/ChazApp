@@ -17,153 +17,199 @@ import java.util.Optional;
 
 public class ChaceroService {
 
-    @Autowired
-    private ChaceroRepository repository;
+        @Autowired
+        private ChaceroRepository repository;
 
-    @Autowired
-    private ChazaRepository chazaRepository;
+        @Autowired
+        private ChazaRepository chazaRepository;
 
-    @Autowired
-    private TrabajadorChazaRepository trabajadorChazaRepository;
+        @Autowired
+        private TrabajadorChazaRepository trabajadorChazaRepository;
 
-    private void populateChazaEmailId(Chacero chacero) {
-        if (chacero == null)
-            return;
-        if ("trabajador".equalsIgnoreCase(chacero.getRolUniversitario())) {
-            List<TrabajadorChaza> relations = trabajadorChazaRepository.findAll();
-            Optional<TrabajadorChaza> relation = relations.stream()
-                    .filter(r -> r.getId_chacero().equals(chacero.getId_chacero()))
-                    .findFirst();
-            if (relation.isPresent()) {
-                Optional<Chaza> chaza = chazaRepository.findById(relation.get().getId_chaza());
-                if (chaza.isPresent()) {
-                    Optional<Chacero> owner = repository.findById(chaza.get().getId_chacero());
-                    owner.ifPresent(o -> chacero.setChazaEmailId(o.getCorreoInstitucional()));
+        private void populateChazaEmailId(Chacero chacero) {
+                if (chacero == null)
+                        return;
+                if ("trabajador".equalsIgnoreCase(chacero.getRolUniversitario())) {
+                        List<TrabajadorChaza> relations = trabajadorChazaRepository.findAll();
+                        Optional<TrabajadorChaza> relation = relations.stream()
+                                        .filter(r -> r.getId_chacero().equals(chacero.getId_chacero()))
+                                        .findFirst();
+                        if (relation.isPresent()) {
+                                Optional<Chaza> chaza = chazaRepository.findById(relation.get().getId_chaza());
+                                if (chaza.isPresent()) {
+                                        Optional<Chacero> owner = repository.findById(chaza.get().getId_chacero());
+                                        owner.ifPresent(o -> chacero.setChazaEmailId(o.getCorreoInstitucional()));
+                                }
+                        }
+                } else {
+                        chacero.setChazaEmailId(chacero.getCorreoInstitucional());
                 }
-            }
-        } else {
-            chacero.setChazaEmailId(chacero.getCorreoInstitucional());
-        }
-    }
-
-    public List<Chacero> getAllChaceros() {
-        List<Chacero> chaceros = repository.findAll();
-        for (Chacero c : chaceros) {
-            populateChazaEmailId(c);
-        }
-        return chaceros;
-    }
-
-    public Optional<Chacero> getChaceroById(Integer id) {
-        Optional<Chacero> chacero = repository.findById(id);
-        chacero.ifPresent(this::populateChazaEmailId);
-        return chacero;
-    }
-
-    public Chacero createChacero(Chacero chacero) {
-
-        System.out.println(
-                "CHAZA EMAIL: " +
-                        chacero.getChazaEmailId());
-
-        Chacero nuevoChacero = repository.save(chacero);
-
-        if ("trabajador".equalsIgnoreCase(
-                chacero.getRolUniversitario())
-                &&
-                chacero.getChazaEmailId() != null
-                &&
-                !chacero.getChazaEmailId().isBlank()) {
-
-            Chaza chaza = chazaRepository
-                    .findByCorreoPropietario(
-                            chacero.getChazaEmailId())
-                    .orElseThrow(
-                            () -> new IllegalArgumentException(
-                                    "No existe una chaza asociada a ese correo"));
-
-            TrabajadorChaza relacion = new TrabajadorChaza();
-
-            relacion.setId_chacero(
-                    nuevoChacero.getId_chacero());
-
-            relacion.setId_chaza(
-                    chaza.getId_chaza());
-
-            trabajadorChazaRepository.save(
-                    relacion);
         }
 
-        return nuevoChacero;
-    }
+        public List<Chacero> getAllChaceros() {
 
-    public Optional<Chacero> findByCedula(String cedula) {
-        Optional<Chacero> chacero = repository.findByCedula(cedula);
-        chacero.ifPresent(this::populateChazaEmailId);
-        return chacero;
-    }
+                List<Chacero> chaceros = repository.findAll();
 
-    public Optional<Chacero> findByCorreo(String correo) {
-        Optional<Chacero> chacero = repository.findByCorreoInstitucional(correo);
-        chacero.ifPresent(this::populateChazaEmailId);
-        return chacero;
-    }
+                List<Chaza> chazas = chazaRepository.findAll();
 
-    public void deleteChacero(Integer id) {
-        repository.deleteById(id);
-    }
+                List<TrabajadorChaza> relaciones = trabajadorChazaRepository.findAll();
 
-    public Chacero updateChacero(Integer id, Chacero chaceroActualizado) {
+                for (Chacero chacero : chaceros) {
 
-        Chacero chacero = repository.findById(id).orElseThrow();
+                        relaciones.stream()
+                                        .filter(
+                                                        r -> r.getId_chacero()
+                                                                        .equals(
+                                                                                        chacero.getId_chacero()))
+                                        .findFirst()
+                                        .ifPresent(
+                                                        relacion -> {
 
-        chacero.setNombre(chaceroActualizado.getNombre());
-        chacero.setApellido(chaceroActualizado.getApellido());
-        chacero.setCedula(chaceroActualizado.getCedula());
-        chacero.setCorreoInstitucional(chaceroActualizado.getCorreoInstitucional());
-        chacero.setTelefono(chaceroActualizado.getTelefono());
-        chacero.setFacultad(chaceroActualizado.getFacultad());
-        chacero.setCarrera(chaceroActualizado.getCarrera());
-        chacero.setRolUniversitario(chaceroActualizado.getRolUniversitario());
-        chacero.setNotas(chaceroActualizado.getNotas());
+                                                                chazas.stream()
+                                                                                .filter(
+                                                                                                c -> c.getId_chaza()
+                                                                                                                .equals(
+                                                                                                                                relacion.getId_chaza()))
+                                                                                .findFirst()
+                                                                                .ifPresent(
+                                                                                                chaza -> {
 
-        Chacero saved = repository.save(chacero);
+                                                                                                        chaceros.stream()
+                                                                                                                        .filter(
+                                                                                                                                        c -> c.getId_chacero()
+                                                                                                                                                        .equals(
+                                                                                                                                                                        chaza.getId_chacero()))
+                                                                                                                        .findFirst()
+                                                                                                                        .ifPresent(
+                                                                                                                                        propietario -> chacero
+                                                                                                                                                        .setChazaEmailId(
+                                                                                                                                                                        propietario.getCorreoInstitucional()));
+                                                                                                });
+                                                        });
 
-        if ("trabajador".equalsIgnoreCase(
-                chaceroActualizado.getRolUniversitario())
-                &&
-                chaceroActualizado.getChazaEmailId() != null
-                &&
-                !chaceroActualizado.getChazaEmailId().isBlank()) {
+                        if (chacero.getChazaEmailId() == null) {
 
-            Chaza chaza = chazaRepository
-                    .findByCorreoPropietario(
-                            chaceroActualizado.getChazaEmailId())
-                    .orElseThrow(
-                            () -> new IllegalArgumentException(
-                                    "No existe una chaza asociada a ese correo"));
+                                chazas.stream()
+                                                .filter(
+                                                                c -> c.getId_chacero()
+                                                                                .equals(
+                                                                                                chacero.getId_chacero()))
+                                                .findFirst()
+                                                .ifPresent(
+                                                                c -> chacero.setChazaEmailId(
+                                                                                chacero.getCorreoInstitucional()));
+                        }
+                }
 
-            Optional<TrabajadorChaza> relacionOpt = trabajadorChazaRepository
-                    .findAll()
-                    .stream()
-                    .filter(
-                            relacion -> relacion.getId_chacero()
-                                    .equals(id))
-                    .findFirst();
-
-            if (relacionOpt.isPresent()) {
-                TrabajadorChaza rel = relacionOpt.get();
-                rel.setId_chaza(chaza.getId_chaza());
-                trabajadorChazaRepository.save(rel);
-            } else {
-                TrabajadorChaza rel = new TrabajadorChaza();
-                rel.setId_chacero(id);
-                rel.setId_chaza(chaza.getId_chaza());
-                trabajadorChazaRepository.save(rel);
-            }
+                return chaceros;
         }
 
-        populateChazaEmailId(saved);
-        return saved;
-    }
+        public Optional<Chacero> getChaceroById(Integer id) {
+                Optional<Chacero> chacero = repository.findById(id);
+                return chacero;
+        }
+
+        public Chacero createChacero(Chacero chacero) {
+
+                System.out.println(
+                                "CHAZA EMAIL: " +
+                                                chacero.getChazaEmailId());
+
+                Chacero nuevoChacero = repository.save(chacero);
+
+                if ("trabajador".equalsIgnoreCase(
+                                chacero.getRolUniversitario())
+                                &&
+                                chacero.getChazaEmailId() != null
+                                &&
+                                !chacero.getChazaEmailId().isBlank()) {
+
+                        Chaza chaza = chazaRepository
+                                        .findByCorreoPropietario(
+                                                        chacero.getChazaEmailId())
+                                        .orElseThrow(
+                                                        () -> new IllegalArgumentException(
+                                                                        "No existe una chaza asociada a ese correo"));
+
+                        TrabajadorChaza relacion = new TrabajadorChaza();
+
+                        relacion.setId_chacero(
+                                        nuevoChacero.getId_chacero());
+
+                        relacion.setId_chaza(
+                                        chaza.getId_chaza());
+
+                        trabajadorChazaRepository.save(
+                                        relacion);
+                }
+
+                return nuevoChacero;
+        }
+
+        public Optional<Chacero> findByCedula(String cedula) {
+                Optional<Chacero> chacero = repository.findByCedula(cedula);
+                return chacero;
+        }
+
+        public Optional<Chacero> findByCorreo(String correo) {
+                Optional<Chacero> chacero = repository.findByCorreoInstitucional(correo);
+                return chacero;
+        }
+
+        public void deleteChacero(Integer id) {
+                repository.deleteById(id);
+        }
+
+        public Chacero updateChacero(Integer id, Chacero chaceroActualizado) {
+
+                Chacero chacero = repository.findById(id).orElseThrow();
+
+                chacero.setNombre(chaceroActualizado.getNombre());
+                chacero.setApellido(chaceroActualizado.getApellido());
+                chacero.setCedula(chaceroActualizado.getCedula());
+                chacero.setCorreoInstitucional(chaceroActualizado.getCorreoInstitucional());
+                chacero.setTelefono(chaceroActualizado.getTelefono());
+                chacero.setFacultad(chaceroActualizado.getFacultad());
+                chacero.setCarrera(chaceroActualizado.getCarrera());
+                chacero.setRolUniversitario(chaceroActualizado.getRolUniversitario());
+                chacero.setNotas(chaceroActualizado.getNotas());
+
+                Chacero saved = repository.save(chacero);
+
+                if ("trabajador".equalsIgnoreCase(
+                                chaceroActualizado.getRolUniversitario())
+                                &&
+                                chaceroActualizado.getChazaEmailId() != null
+                                &&
+                                !chaceroActualizado.getChazaEmailId().isBlank()) {
+
+                        Chaza chaza = chazaRepository
+                                        .findByCorreoPropietario(
+                                                        chaceroActualizado.getChazaEmailId())
+                                        .orElseThrow(
+                                                        () -> new IllegalArgumentException(
+                                                                        "No existe una chaza asociada a ese correo"));
+
+                        Optional<TrabajadorChaza> relacionOpt = trabajadorChazaRepository
+                                        .findAll()
+                                        .stream()
+                                        .filter(
+                                                        relacion -> relacion.getId_chacero()
+                                                                        .equals(id))
+                                        .findFirst();
+
+                        if (relacionOpt.isPresent()) {
+                                TrabajadorChaza rel = relacionOpt.get();
+                                rel.setId_chaza(chaza.getId_chaza());
+                                trabajadorChazaRepository.save(rel);
+                        } else {
+                                TrabajadorChaza rel = new TrabajadorChaza();
+                                rel.setId_chacero(id);
+                                rel.setId_chaza(chaza.getId_chaza());
+                                trabajadorChazaRepository.save(rel);
+                        }
+                }
+
+                return saved;
+        }
 }
