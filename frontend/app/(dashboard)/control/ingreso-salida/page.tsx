@@ -27,6 +27,14 @@ const formatTime = (dateString: string | undefined): string => {
   }
 };
 
+const getNormalizedTipo = (tipo: string | undefined): string => {
+  if (!tipo) return "";
+  const upper = tipo.toUpperCase();
+  if (upper === "INGRESO" || upper === "ENTRADA") return "ENTRADA";
+  if (upper === "SALIDA") return "SALIDA";
+  return upper;
+};
+
 export const IngresoSalidaPage: FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"ingreso" | "salida">("ingreso");
@@ -126,7 +134,7 @@ export const IngresoSalidaPage: FC = () => {
     try {
       const payload = {
         correoChaza: emailInput.trim(),
-        tipo: modalMode === "ingreso" ? "Ingreso" : "Salida",
+        tipo: modalMode === "ingreso" ? "ENTRADA" : "SALIDA",
         porteria: porteria
       };
 
@@ -238,7 +246,7 @@ export const IngresoSalidaPage: FC = () => {
                   id={String(mov.id_movimiento)}
                   primaryText={nombreChaza}
                   secondaryText={formatTime(mov.fecha_hora)}
-                  tertiaryText={mov.tipo}
+                  tertiaryText={getNormalizedTipo(mov.tipo)}
                   icon={ArrowLeftRight}
                   rightElement={
                     <span className="text-xs font-bold text-neutral-500 bg-neutral-100 px-3 py-1 rounded-md">
