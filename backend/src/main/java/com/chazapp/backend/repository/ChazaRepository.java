@@ -23,4 +23,13 @@ public interface ChazaRepository
         WHERE ch.correoInstitucional = :correo
     """)
     Optional<Chaza> findByCorreoPropietario(String correo);
+
+    @Query("""
+        SELECT c
+        FROM Chaza c
+        WHERE c.id_chacero = :idChacero
+    """)
+    Optional<Chaza> findByIdChacero(
+            Integer idChacero
+    );
 }
