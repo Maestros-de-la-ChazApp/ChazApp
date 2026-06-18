@@ -29,4 +29,7 @@ public class Movimiento {
     private String porteria;
 
     private Integer id_usuario;
+
+    @Transient
+    private String nombreChaza;
 }

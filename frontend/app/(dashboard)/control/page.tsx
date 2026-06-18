@@ -17,16 +17,9 @@ export const ControlPage: FC<IControlPageProps> = (props) => {
     {
       title: "Registro Ingreso/Salida",
       description: "Monitorea y registra el ingreso o la salida de los chaceros colaboradores en tiempo real.",
-      path: "/control/registro",
+      path: "/control/ingreso-salida",
       icon: ScanLine,
       color: "bg-primary-300/10 text-primary-200",
-    },
-    {
-      title: "Reportes y Estadísticas",
-      description: "Genera reportes de asistencia, consolidados de horas trabajadas y estadísticas de cumplimiento.",
-      path: "/control/reportes",
-      icon: BarChart3,
-      color: "bg-purple-100 text-purple-300",
     },
     {
       title: "Registrar Sanciones",

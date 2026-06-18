@@ -26,43 +26,31 @@ public class ChaceroService {
     @Autowired
     private TrabajadorChazaRepository trabajadorChazaRepository;
 
+    private void populateChazaEmailId(Chacero chacero) {
+        if (chacero == null)
+            return;
+        if ("trabajador".equalsIgnoreCase(chacero.getRolUniversitario())) {
+            List<TrabajadorChaza> relations = trabajadorChazaRepository.findAll();
+            Optional<TrabajadorChaza> relation = relations.stream()
+                    .filter(r -> r.getId_chacero().equals(chacero.getId_chacero()))
+                    .findFirst();
+            if (relation.isPresent()) {
+                Optional<Chaza> chaza = chazaRepository.findById(relation.get().getId_chaza());
+                if (chaza.isPresent()) {
+                    Optional<Chacero> owner = repository.findById(chaza.get().getId_chacero());
+                    owner.ifPresent(o -> chacero.setChazaEmailId(o.getCorreoInstitucional()));
+                }
+            }
+        } else {
+            chacero.setChazaEmailId(chacero.getCorreoInstitucional());
+        }
+    }
+
     public List<Chacero> getAllChaceros() {
         List<Chacero> chaceros = repository.findAll();
         for (Chacero c : chaceros) {
             populateChazaEmailId(c);
         }
-        return chaceros;
-
-        List<Chacero> chaceros = repository.findAll();
-
-        for (Chacero chacero : chaceros) {
-
-            trabajadorChazaRepository
-                    .findAll()
-                    .stream()
-                    .filter(
-                            relacion -> relacion.getId_chacero()
-                                    .equals(
-                                            chacero.getId_chacero()))
-                    .findFirst()
-                    .ifPresent(
-                            relacion -> {
-
-                                Chaza chaza = chazaRepository
-                                        .findById(
-                                                relacion.getId_chaza())
-                                        .orElseThrow();
-
-                                Chacero propietario = repository
-                                        .findById(
-                                                chaza.getId_chacero())
-                                        .orElseThrow();
-
-                                chacero.setChazaEmailId(
-                                        propietario.getCorreoInstitucional());
-                            });
-        }
-
         return chaceros;
     }
 
