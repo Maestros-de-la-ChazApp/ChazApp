@@ -26,12 +26,37 @@ public class ChaceroService {
     @Autowired
     private TrabajadorChazaRepository trabajadorChazaRepository;
 
+    private void populateChazaEmailId(Chacero chacero) {
+        if (chacero == null) return;
+        if ("trabajador".equalsIgnoreCase(chacero.getRolUniversitario())) {
+            List<TrabajadorChaza> relations = trabajadorChazaRepository.findAll();
+            Optional<TrabajadorChaza> relation = relations.stream()
+                .filter(r -> r.getId_chacero().equals(chacero.getId_chacero()))
+                .findFirst();
+            if (relation.isPresent()) {
+                Optional<Chaza> chaza = chazaRepository.findById(relation.get().getId_chaza());
+                if (chaza.isPresent()) {
+                    Optional<Chacero> owner = repository.findById(chaza.get().getId_chacero());
+                    owner.ifPresent(o -> chacero.setChazaEmailId(o.getCorreoInstitucional()));
+                }
+            }
+        } else {
+            chacero.setChazaEmailId(chacero.getCorreoInstitucional());
+        }
+    }
+
     public List<Chacero> getAllChaceros() {
-        return repository.findAll();
+        List<Chacero> chaceros = repository.findAll();
+        for (Chacero c : chaceros) {
+            populateChazaEmailId(c);
+        }
+        return chaceros;
     }
 
     public Optional<Chacero> getChaceroById(Integer id) {
-        return repository.findById(id);
+        Optional<Chacero> chacero = repository.findById(id);
+        chacero.ifPresent(this::populateChazaEmailId);
+        return chacero;
     }
 
     public Chacero createChacero(Chacero chacero) {
@@ -62,7 +87,7 @@ public class ChaceroService {
                             .orElseThrow(
                                     () -> new IllegalArgumentException(
                                             "No existe una chaza asociada a ese correo"
-                                    )
+                                     )
                             );
 
             TrabajadorChaza relacion =
@@ -85,11 +110,15 @@ public class ChaceroService {
     }
 
     public Optional<Chacero> findByCedula(String cedula) {
-        return repository.findByCedula(cedula);
+        Optional<Chacero> chacero = repository.findByCedula(cedula);
+        chacero.ifPresent(this::populateChazaEmailId);
+        return chacero;
     }
 
     public Optional<Chacero> findByCorreo(String correo) {
-        return repository.findByCorreoInstitucional(correo);
+        Optional<Chacero> chacero = repository.findByCorreoInstitucional(correo);
+        chacero.ifPresent(this::populateChazaEmailId);
+        return chacero;
     }
 
     public void deleteChacero(Integer id) {
@@ -110,6 +139,8 @@ public class ChaceroService {
         chacero.setRolUniversitario(chaceroActualizado.getRolUniversitario());
         chacero.setNotas(chaceroActualizado.getNotas());
 
-        return repository.save(chacero);
+        Chacero saved = repository.save(chacero);
+        populateChazaEmailId(saved);
+        return saved;
     }
 }

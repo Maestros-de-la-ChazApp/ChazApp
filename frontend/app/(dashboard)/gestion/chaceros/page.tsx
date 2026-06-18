@@ -97,7 +97,7 @@ export const ChacerosPage: FC<IChacerosPageProps> = (props) => {
       facultad: target.facultad || "",
       carrera: target.carrera || "",
       rol: target.rolUniversitario || "",
-      chazaEmailId: "",
+      chazaEmailId: target.chazaEmailId || "",
       amountChazas: 1
     });
     setIsModalOpen(true);

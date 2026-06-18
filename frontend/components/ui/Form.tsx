@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, FormEvent, useRef, useEffect } from "react";
-import { ChevronUp, ChevronDown, Plus, X } from "lucide-react";
+import { ChevronUp, ChevronDown, Plus, X, Trash2 } from "lucide-react";
 import { DynamicFormProps, FormField } from "@/types";
 import { Input } from "./Input";
 import { Select } from "./Select";
@@ -219,21 +219,9 @@ export const Form = ({
           </div>
         )}
 
-        <div className="flex items-center justify-between mt-2 w-full">
-          <div>
-            {onDelete && (
-              <Button
-                type="button"
-                variant="danger"
-                shape="standard"
-                onClick={onDelete}
-                className="px-4 py-2"
-              >
-                {deleteLabel}
-              </Button>
-            )}
-          </div>
-          <div className="flex items-center gap-3">
+        <div className="flex flex-col gap-3 mt-4 w-full">
+          {/* Row 1: Cancel and Submit */}
+          <div className="flex items-center gap-3 w-full">
             {onCancel && (
               <Button 
                 type="button" 
@@ -241,7 +229,7 @@ export const Form = ({
                 shape="standard" 
                 icon={X} 
                 onClick={onCancel}
-                className="px-4 py-2"
+                className="flex-1! justify-center"
               >
                 Cancelar
               </Button>
@@ -253,11 +241,25 @@ export const Form = ({
               shape="asymmetric" 
               icon={SubmitIcon} 
               isLoading={isLoading} 
-              className="px-5 py-2"
+              className={`${onCancel ? "flex-1!" : "w-full!"} justify-center`}
             >
               {submitLabel}
             </Button>
           </div>
+
+          {/* Row 2: Delete */}
+          {onDelete && (
+            <Button
+              type="button"
+              variant="danger"
+              shape="standard"
+              icon={Trash2}
+              onClick={onDelete}
+              className="w-full! justify-center"
+            >
+              {deleteLabel}
+            </Button>
+          )}
         </div>
       </form>
     </div>

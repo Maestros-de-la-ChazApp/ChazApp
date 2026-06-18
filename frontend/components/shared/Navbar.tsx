@@ -29,7 +29,7 @@ export const Navbar = ({ isSidebarOpen, setIsSidebarOpen }: NavbarProps) => {
       <nav className="fixed bottom-0 left-0 right-0 z-50 flex h-16 border-t border-gray-200 bg-primary-100 md:hidden">
         {navItems.map((item) => {
           const Icon = item.icon;
-          const isActive = pathname === item.path;
+          const isActive = pathname.startsWith(item.path);
           return (
             <button
               key={item.path}
@@ -66,7 +66,7 @@ export const Navbar = ({ isSidebarOpen, setIsSidebarOpen }: NavbarProps) => {
         <div className="flex-1 space-y-1 px-3 py-4">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = pathname === item.path;
+            const isActive = pathname.startsWith(item.path);
             return (
               <button
                 key={item.path}
