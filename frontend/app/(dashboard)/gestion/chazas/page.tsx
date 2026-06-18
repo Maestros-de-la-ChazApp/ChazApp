@@ -4,7 +4,7 @@ import { FC, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { FormField } from "@/types";
-import { Plus, Store } from "lucide-react";
+import { Plus, Store, X } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { Form } from "@/components/ui/Form";
@@ -77,6 +77,169 @@ const formatDate = (dateString: string | undefined): string => {
   }
 };
 
+interface WorkerSelectorProps {
+  chazaOwnerEmail: string;
+  existingWorkers: any[];
+  token: string | null;
+  onWorkerAdded: (worker: any) => void;
+}
+
+const WorkerSelector = ({ chazaOwnerEmail, existingWorkers, token, onWorkerAdded }: WorkerSelectorProps) => {
+  const [isAdding, setIsAdding] = useState(false);
+  const [emailInput, setEmailInput] = useState("");
+  const [allChaceros, setAllChaceros] = useState<any[]>([]);
+  const [filteredChaceros, setFilteredChaceros] = useState<any[]>([]);
+  const [selectedChacero, setSelectedChacero] = useState<any | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    if (isAdding && token) {
+      fetch("http://localhost:8080/chaceros", {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (Array.isArray(data)) {
+            const existingIds = existingWorkers.map(w => w.id_chacero);
+            const workersOnly = data.filter(
+              (c: any) => c.rolUniversitario?.toLowerCase() === "trabajador" && !existingIds.includes(c.id_chacero)
+            );
+            setAllChaceros(workersOnly);
+          }
+        })
+        .catch(err => console.error(err));
+    }
+  }, [isAdding, token, existingWorkers]);
+
+  useEffect(() => {
+    if (!emailInput.trim()) {
+      setFilteredChaceros([]);
+      return;
+    }
+    const query = emailInput.toLowerCase();
+    const matches = allChaceros.filter(
+      c => c.correoInstitucional?.toLowerCase().includes(query)
+    );
+    setFilteredChaceros(matches);
+  }, [emailInput, allChaceros]);
+
+  const handleAdd = async () => {
+    let chaceroToUpdate = selectedChacero;
+    if (!chaceroToUpdate) {
+      chaceroToUpdate = allChaceros.find(
+        c => c.correoInstitucional?.toLowerCase() === emailInput.trim().toLowerCase()
+      );
+    }
+    if (!chaceroToUpdate) {
+      alert("Por favor, seleccione un chacero válido del sistema.");
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const payload = {
+        ...chaceroToUpdate,
+        chazaEmailId: chazaOwnerEmail
+      };
+
+      const response = await fetch(`http://localhost:8080/chaceros/${chaceroToUpdate.id_chacero}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) throw new Error("Error al asociar el trabajador");
+      const updatedChacero = await response.json();
+
+      onWorkerAdded(updatedChacero);
+      setEmailInput("");
+      setSelectedChacero(null);
+      setFilteredChaceros([]);
+      setIsAdding(false);
+    } catch (err) {
+      console.error(err);
+      alert("Error al asociar el trabajador a la chaza.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  if (!isAdding) {
+    return (
+      <button
+        onClick={() => setIsAdding(true)}
+        className="flex items-center justify-center gap-2 mt-2 w-full border border-dashed border-neutral-300 hover:border-primary-200 text-neutral-600 hover:text-primary-200 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer"
+      >
+        <Plus size={14} />
+        Agregar trabajador
+      </button>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-2 p-3 bg-neutral-50/80 border border-neutral-200 rounded-xl mt-2 relative text-left">
+      <span className="text-[10px] font-bold text-neutral-500 uppercase">
+        Nuevo trabajador (correo)
+      </span>
+      <div className="flex gap-2">
+        <div className="relative flex-1">
+          <input
+            type="text"
+            placeholder="ejemplo@unal.edu.co"
+            value={emailInput}
+            onChange={(e) => {
+              setEmailInput(e.target.value);
+              setSelectedChacero(null);
+            }}
+            className="w-full text-xs font-medium border border-neutral-300 px-2.5 py-1.5 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-200 bg-white text-neutral-1000"
+          />
+
+          {filteredChaceros.length > 0 && (
+            <div className="absolute left-0 right-0 top-full mt-1 z-30 bg-white border border-neutral-200 shadow-lg rounded-lg max-h-32 overflow-y-auto">
+              {filteredChaceros.map((c) => (
+                <div
+                  key={c.id_chacero}
+                  onClick={() => {
+                    setEmailInput(c.correoInstitucional);
+                    setSelectedChacero(c);
+                    setFilteredChaceros([]);
+                  }}
+                  className="px-3 py-1.5 text-xs text-neutral-1000 hover:bg-primary-300/10 cursor-pointer font-medium border-b border-neutral-100 last:border-none"
+                >
+                  <div className="font-bold">{c.nombre} {c.apellido}</div>
+                  <div className="text-[10px] text-neutral-500">{c.correoInstitucional}</div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <button
+          onClick={handleAdd}
+          disabled={isSaving}
+          className="bg-primary-200 text-white hover:bg-primary-300 disabled:opacity-50 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex-shrink-0"
+        >
+          {isSaving ? "Guardando..." : "Asociar"}
+        </button>
+        <button
+          onClick={() => {
+            setIsAdding(false);
+            setEmailInput("");
+            setSelectedChacero(null);
+            setFilteredChaceros([]);
+          }}
+          className="border border-neutral-300 hover:bg-neutral-100 text-neutral-500 hover:text-neutral-700 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex-shrink-0"
+        >
+          Cancelar
+        </button>
+      </div>
+    </div>
+  );
+};
+
 export const ChazasPage: FC = () => {
   const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -84,6 +247,7 @@ export const ChazasPage: FC = () => {
   const [modalMode, setModalMode] = useState<"create" | "edit">("create");
   const [selectedChaza, setSelectedChaza] = useState<any | null>(null);
   const [initialFormData, setInitialFormData] = useState<Record<string, unknown>>({});
+  const [editWorkers, setEditWorkers] = useState<any[]>([]);
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
@@ -216,12 +380,28 @@ export const ChazasPage: FC = () => {
       const chaza = await response.json();
 
       const listTarget = chazas.find(c => c.idChaza === id);
+      const ownerEmail = listTarget?.correoChacero || "";
+
+      // Fetch workers of this chaza
+      const chacerosResponse = await fetch("http://localhost:8080/chaceros", {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      let trabajadores: any[] = [];
+      if (chacerosResponse.ok) {
+        const chacerosList = await chacerosResponse.json();
+        trabajadores = chacerosList.filter(
+          (c: any) => c.chazaEmailId === ownerEmail && c.rolUniversitario?.toLowerCase() === "trabajador"
+        );
+      }
+      setEditWorkers(trabajadores);
 
       setModalMode("edit");
       setSelectedChaza(chaza);
       setInitialFormData({
         nombreChaza: chaza.nombre_chaza || "",
-        emailPropietario: listTarget?.correoChacero || "",
+        emailPropietario: ownerEmail,
         tipoProducto: chaza.producto || "",
         zonaCampus: chaza.ubicacion || "",
         cantidadCarpas: chaza.num_carpas || 1,
@@ -232,6 +412,31 @@ export const ChazasPage: FC = () => {
     } catch (error) {
       console.error(error);
       alert("Error al cargar los datos de la chaza.");
+    }
+  };
+
+  const handleRemoveWorker = async (worker: any) => {
+    if (!confirm(`¿Desea desvincular a ${worker.nombre} ${worker.apellido} de esta chaza?`)) {
+      return;
+    }
+    try {
+      const payload = {
+        ...worker,
+        chazaEmailId: ""
+      };
+      const response = await fetch(`http://localhost:8080/chaceros/${worker.id_chacero}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+      });
+      if (!response.ok) throw new Error("Error al desvincular al trabajador");
+      setEditWorkers((prev) => prev.filter(w => w.id_chacero !== worker.id_chacero));
+    } catch (e) {
+      console.error(e);
+      alert("Error al desvincular al trabajador.");
     }
   };
 
@@ -516,7 +721,48 @@ export const ChazasPage: FC = () => {
           deleteLabel="Eliminar Chaza"
           initialData={initialFormData}
           isLoading={isSubmitting}
-        />
+        >
+          {modalMode === "edit" && (
+            <div className="flex flex-col gap-3 mt-4 pt-4 border-t border-neutral-100 text-left">
+              <span className="text-xs font-bold text-neutral-800">
+                Chaceros que trabajan aquí
+              </span>
+              
+              {editWorkers.length > 0 ? (
+                <div className="flex flex-col gap-2 w-full">
+                  {editWorkers.map((t) => (
+                    <div key={t.id_chacero} className="flex items-center justify-between gap-3 bg-neutral-100/50 px-3 py-2 rounded-lg border border-neutral-200">
+                      <div className="flex flex-col min-w-0 flex-1">
+                        <span className="text-xs font-bold text-neutral-1000 truncate">{t.nombre} {t.apellido}</span>
+                        <span className="text-[10px] text-neutral-500 font-medium truncate">{t.correoInstitucional}</span>
+                      </div>
+                      
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveWorker(t)}
+                        className="p-1.5 text-neutral-500 hover:text-alert-200 hover:bg-neutral-200/50 rounded-md transition-all flex-shrink-0 cursor-pointer"
+                        title="Desvincular"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <span className="text-xs text-neutral-400 italic">No hay trabajadores asociados</span>
+              )}
+
+              <WorkerSelector
+                chazaOwnerEmail={initialFormData.emailPropietario as string || ""}
+                existingWorkers={editWorkers}
+                token={token}
+                onWorkerAdded={(newWorker) => {
+                  setEditWorkers((prev) => [...prev, newWorker]);
+                }}
+              />
+            </div>
+          )}
+        </Form>
       </Modal>
 
       <Modal

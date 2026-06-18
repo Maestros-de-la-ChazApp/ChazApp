@@ -15,6 +15,7 @@ interface EnhancedFormProps extends DynamicFormProps {
   onDelete?: () => void;
   deleteLabel?: string;
   submitIcon?: any;
+  children?: React.ReactNode;
 }
 
 export const Form = ({
@@ -28,7 +29,8 @@ export const Form = ({
   onDelete,
   deleteLabel = "Eliminar",
   submitIcon: SubmitIcon = Plus,
-  isLoading = false
+  isLoading = false,
+  children
 }: EnhancedFormProps) => {
   const [formData, setFormData] = useState<Record<string, unknown>>(initialData || {});
   const [dynamicFields, setDynamicFields] = useState<FormField[]>(fields);
@@ -209,6 +211,7 @@ export const Form = ({
                 );
             }
           })}
+          {children}
         </div>
 
         {showScrollDown && (

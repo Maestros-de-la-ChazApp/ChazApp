@@ -140,9 +140,6 @@ public class ChaceroService {
         chacero.setNotas(chaceroActualizado.getNotas());
 
         Chacero saved = repository.save(chacero);
-        populateChazaEmailId(saved);
-        return saved;
-        Chacero chaceroGuardado = repository.save(chacero);
 
         if ("trabajador".equalsIgnoreCase(
                 chaceroActualizado.getRolUniversitario())
@@ -158,23 +155,27 @@ public class ChaceroService {
                             () -> new IllegalArgumentException(
                                     "No existe una chaza asociada a ese correo"));
 
-            trabajadorChazaRepository
+            Optional<TrabajadorChaza> relacionOpt = trabajadorChazaRepository
                     .findAll()
                     .stream()
                     .filter(
                             relacion -> relacion.getId_chacero()
                                     .equals(id))
-                    .findFirst()
-                    .ifPresent(
-                            relacion -> {
-                                relacion.setId_chaza(
-                                        chaza.getId_chaza());
+                    .findFirst();
 
-                                trabajadorChazaRepository
-                                        .save(relacion);
-                            });
+            if (relacionOpt.isPresent()) {
+                TrabajadorChaza rel = relacionOpt.get();
+                rel.setId_chaza(chaza.getId_chaza());
+                trabajadorChazaRepository.save(rel);
+            } else {
+                TrabajadorChaza rel = new TrabajadorChaza();
+                rel.setId_chacero(id);
+                rel.setId_chaza(chaza.getId_chaza());
+                trabajadorChazaRepository.save(rel);
+            }
         }
 
-        return chaceroGuardado;
+        populateChazaEmailId(saved);
+        return saved;
     }
 }
