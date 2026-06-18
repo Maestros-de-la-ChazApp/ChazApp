@@ -2,7 +2,7 @@
 
 import { FC } from "react";
 import { useRouter } from "next/navigation";
-import { Users, Store, ChevronRight } from "lucide-react";
+import { Users, Store, ChevronRight, UserCheck } from "lucide-react";
 import { IGestionPageProps } from "@/types";
 
 export const GestionPage: FC<IGestionPageProps> = (props) => {
@@ -23,6 +23,13 @@ export const GestionPage: FC<IGestionPageProps> = (props) => {
       icon: Store,
       color: "bg-info-100 text-info-300",
     },
+    {
+      title: "Gestión de Usuarios",
+      description: "Administra los usuarios del sistema, sus roles (Admin, Seguridad, Celador) y sus accesos.",
+      path: "/gestion/usuarios",
+      icon: UserCheck,
+      color: "bg-purple-100 text-purple-300",
+    },
   ];
 
   return (
@@ -36,7 +43,7 @@ export const GestionPage: FC<IGestionPageProps> = (props) => {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-2">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-2">
         {menuItems.map((item) => {
           const Icon = item.icon;
           return (

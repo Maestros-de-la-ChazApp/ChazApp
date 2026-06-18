@@ -17,7 +17,7 @@ export interface ModalProps {
   children: React.ReactNode;
 }
 
-export type FieldType = "text" | "number" | "email" | "select" | "checkbox" | "textarea" | "multiselect";
+export type FieldType = "text" | "number" | "email" | "select" | "checkbox" | "textarea" | "multiselect" | "password";
 
 export interface FormFieldOption {
   label: string;
