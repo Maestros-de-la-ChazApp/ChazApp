@@ -24,6 +24,9 @@ public class SituacionService {
     }
 
     public Situacion createSituacion(Situacion situacion) {
+        if (situacion.getFecha_hora() == null) {
+            situacion.setFecha_hora(java.time.LocalDateTime.now());
+        }
         return repository.save(situacion);
     }
 

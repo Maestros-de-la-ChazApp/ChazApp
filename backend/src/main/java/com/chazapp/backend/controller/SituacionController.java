@@ -16,6 +16,9 @@ public class SituacionController {
     @Autowired
     private SituacionService service;
 
+    @Autowired
+    private com.chazapp.backend.repository.UsuarioRepository usuarioRepository;
+
     @GetMapping
     public List<Situacion> getAllSituaciones() {
         return service.getAllSituaciones();
@@ -32,8 +35,13 @@ public class SituacionController {
 
     @PostMapping
     public Situacion createSituacion(
-            @RequestBody Situacion situacion
+            @RequestBody Situacion situacion,
+            java.security.Principal principal
     ) {
+        if (principal != null) {
+            usuarioRepository.findByEmail(principal.getName())
+                    .ifPresent(u -> situacion.setId_usuario(u.getId_usuario()));
+        }
         return service.createSituacion(situacion);
     }
 
