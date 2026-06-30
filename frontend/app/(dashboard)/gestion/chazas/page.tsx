@@ -1,6 +1,6 @@
 "use client";
 
-import { FC, useState, useEffect } from "react";
+import { FC, useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { FormField } from "@/types";
@@ -240,7 +240,7 @@ const WorkerSelector = ({ chazaOwnerEmail, existingWorkers, token, onWorkerAdded
   );
 };
 
-export const ChazasPage: FC = () => {
+export const ChazasPageInner: FC = () => {
   const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -832,6 +832,18 @@ export const ChazasPage: FC = () => {
         />
       </Modal>
     </div>
+  );
+};
+
+export const ChazasPage: FC = (props) => {
+  return (
+    <Suspense fallback={
+      <div className="flex flex-col gap-6 p-4 w-full max-w-5xl mx-auto items-center justify-center min-h-[50vh]">
+        <p className="text-sm text-neutral-600 font-medium">Cargando chazas...</p>
+      </div>
+    }>
+      <ChazasPageInner {...props} />
+    </Suspense>
   );
 };
 

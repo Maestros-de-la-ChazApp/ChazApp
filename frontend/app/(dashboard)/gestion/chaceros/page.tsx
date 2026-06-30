@@ -1,6 +1,6 @@
 "use client";
 
-import { FC, useState, useEffect } from "react";
+import { FC, useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { IChacerosPageProps, FormField } from "@/types";
@@ -15,7 +15,7 @@ import { DetailCard } from "@/components/ui/DetailCard";
 
 import { FACULTADES_UNAL, ROLES_CHACEROS } from "@/constants";
 
-export const ChacerosPage: FC<IChacerosPageProps> = (props) => {
+export const ChacerosPageInner: FC<IChacerosPageProps> = (props) => {
   const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -479,6 +479,18 @@ export const ChacerosPage: FC<IChacerosPageProps> = (props) => {
         </Modal>
       </div>
     </div>
+  );
+};
+
+export const ChacerosPage: FC<IChacerosPageProps> = (props) => {
+  return (
+    <Suspense fallback={
+      <div className="flex flex-col gap-6 p-4 w-full max-w-5xl mx-auto items-center justify-center min-h-[50vh]">
+        <p className="text-sm text-neutral-600 font-medium">Cargando chaceros...</p>
+      </div>
+    }>
+      <ChacerosPageInner {...props} />
+    </Suspense>
   );
 };
 
