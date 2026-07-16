@@ -16,7 +16,7 @@ export default function Home() {
 
     try {
       const response = await fetch(
-        'http://localhost:8080/usuarios/login',
+        'http://3.145.80.179:8080',
         {
           method: 'POST',
           headers: {
