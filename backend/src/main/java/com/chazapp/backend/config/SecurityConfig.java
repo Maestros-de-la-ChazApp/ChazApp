@@ -22,12 +22,10 @@ public class SecurityConfig {
     private JwtFilter jwtFilter;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(
-            HttpSecurity http
-    ) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
-                .cors(cors -> {})
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
 
@@ -41,55 +39,29 @@ public class SecurityConfig {
                                 "PORTERIA"
                         )
 
-                        .requestMatchers(
-                                HttpMethod.POST,
-                                "/movimientos/**"
-                        )
+                        .requestMatchers(HttpMethod.POST, "/movimientos/**")
                         .hasAnyRole(
                                 "ADMINISTRADOR",
                                 "PORTERIA"
                         )
 
-                        .requestMatchers(
-                                HttpMethod.PUT,
-                                "/movimientos/**"
-                        )
+                        .requestMatchers(HttpMethod.PUT, "/movimientos/**")
                         .hasAnyRole(
                                 "ADMINISTRADOR",
                                 "PORTERIA"
                         )
 
-                        .requestMatchers(
-                                HttpMethod.DELETE,
-                                "/movimientos/**"
-                        )
-                        .hasRole(
-                                "ADMINISTRADOR"
-                        )
+                        .requestMatchers(HttpMethod.DELETE, "/movimientos/**")
+                        .hasRole("ADMINISTRADOR")
 
-                        .requestMatchers(
-                                HttpMethod.POST,
-                                "/**"
-                        )
-                        .hasRole(
-                                "ADMINISTRADOR"
-                        )
+                        .requestMatchers(HttpMethod.POST, "/**")
+                        .hasRole("ADMINISTRADOR")
 
-                        .requestMatchers(
-                                HttpMethod.PUT,
-                                "/**"
-                        )
-                        .hasRole(
-                                "ADMINISTRADOR"
-                        )
+                        .requestMatchers(HttpMethod.PUT, "/**")
+                        .hasRole("ADMINISTRADOR")
 
-                        .requestMatchers(
-                                HttpMethod.DELETE,
-                                "/**"
-                        )
-                        .hasRole(
-                                "ADMINISTRADOR"
-                        )
+                        .requestMatchers(HttpMethod.DELETE, "/**")
+                        .hasRole("ADMINISTRADOR")
 
                         .anyRequest()
                         .authenticated()
@@ -105,34 +77,27 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
 
-        CorsConfiguration configuration =
-                new CorsConfiguration();
+        CorsConfiguration configuration = new CorsConfiguration();
 
-        configuration.setAllowedOrigins(
-                List.of("http://localhost:3000")
-        );
+        configuration.setAllowedOrigins(List.of(
+                "https://chazapp-frontend-beta.vercel.app"
+        ));
 
-        configuration.setAllowedMethods(
-                List.of(
-                        "GET",
-                        "POST",
-                        "PUT",
-                        "DELETE",
-                        "OPTIONS"
-                )
-        );
+        configuration.setAllowedMethods(List.of(
+                "GET",
+                "POST",
+                "PUT",
+                "DELETE",
+                "OPTIONS"
+        ));
 
-        configuration.setAllowedHeaders(
-                List.of("*")
-        );
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source =
                 new UrlBasedCorsConfigurationSource();
 
-        source.registerCorsConfiguration(
-                "/**",
-                configuration
-        );
+        source.registerCorsConfiguration("/**", configuration);
 
         return source;
     }

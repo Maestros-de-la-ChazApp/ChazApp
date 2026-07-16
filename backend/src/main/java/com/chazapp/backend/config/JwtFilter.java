@@ -7,6 +7,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -19,6 +20,9 @@ import java.util.List;
 
 @Component
 public class JwtFilter extends OncePerRequestFilter {
+
+    @Value("${JWT_SECRET}")
+    private String secretKey;
 
     @Override
     protected void doFilterInternal(
@@ -59,8 +63,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
             Claims claims = Jwts.parserBuilder()
                     .setSigningKey(
-                            "chazapp_secret_key_chazapp_secret_key"
-                                    .getBytes(StandardCharsets.UTF_8)
+                            secretKey.getBytes(StandardCharsets.UTF_8)
                     )
                     .build()
                     .parseClaimsJws(token)
