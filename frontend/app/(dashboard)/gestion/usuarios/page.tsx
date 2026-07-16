@@ -9,6 +9,7 @@ import { ListItem } from "@/components/ui/ListItem";
 import { ListContainer } from "@/components/ui/ListContainer";
 import { Pagination } from "@/components/ui/Pagination";
 import { FormField } from "@/types";
+import { API_BASE_URL } from "@/constants";
 
 export const UsuariosPage: FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -30,7 +31,7 @@ export const UsuariosPage: FC = () => {
   const fetchUsuarios = async () => {
     if (!token) return;
     try {
-      const response = await fetch("http://localhost:8080/usuarios", {
+      const response = await fetch(`${API_BASE_URL}/usuarios`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -78,7 +79,7 @@ export const UsuariosPage: FC = () => {
     if (!selectedUser) return;
     if (confirm(`¿Desea eliminar permanentemente al usuario ${selectedUser.email}?`)) {
       try {
-        const response = await fetch(`http://localhost:8080/usuarios/${selectedUser.id_usuario}`, {
+        const response = await fetch(`${API_BASE_URL}/usuarios/${selectedUser.id_usuario}`, {
           method: "DELETE",
           headers: {
             Authorization: `Bearer ${token}`
@@ -110,7 +111,7 @@ export const UsuariosPage: FC = () => {
 
       let response;
       if (modalMode === "create") {
-        response = await fetch("http://localhost:8080/usuarios", {
+        response = await fetch(`${API_BASE_URL}/usuarios`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -119,7 +120,7 @@ export const UsuariosPage: FC = () => {
           body: JSON.stringify(payload)
         });
       } else {
-        response = await fetch(`http://localhost:8080/usuarios/${selectedUser.id_usuario}`, {
+        response = await fetch(`${API_BASE_URL}/usuarios/${selectedUser.id_usuario}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",

@@ -10,6 +10,7 @@ import { ListContainer } from "@/components/ui/ListContainer";
 import { Pagination } from "@/components/ui/Pagination";
 import { Select } from "@/components/ui/Select";
 import { Input } from "@/components/ui/Input";
+import { API_BASE_URL } from "@/constants";
 
 const formatTime = (dateString: string | undefined): string => {
   if (!dateString) return "No disponible";
@@ -55,7 +56,7 @@ export const SancionesPage: FC = () => {
   const fetchChazas = async () => {
     if (!token) return;
     try {
-      const response = await fetch("http://localhost:8080/chazas", {
+      const response = await fetch(`${API_BASE_URL}/chazas`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.ok) {
@@ -72,7 +73,7 @@ export const SancionesPage: FC = () => {
   const fetchSituaciones = async () => {
     if (!token) return;
     try {
-      const response = await fetch("http://localhost:8080/situaciones", {
+      const response = await fetch(`${API_BASE_URL}/situaciones`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.ok) {
@@ -94,7 +95,7 @@ export const SancionesPage: FC = () => {
     const email = localStorage.getItem("userEmail");
     if (!email) return;
     try {
-      const response = await fetch("http://localhost:8080/usuarios", {
+      const response = await fetch(`${API_BASE_URL}/usuarios`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.ok) {
@@ -163,7 +164,7 @@ export const SancionesPage: FC = () => {
     console.log("Submitting situaciones payload:", payload);
 
     try {
-      const response = await fetch("http://localhost:8080/situaciones", {
+      const response = await fetch(`${API_BASE_URL}/situaciones`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

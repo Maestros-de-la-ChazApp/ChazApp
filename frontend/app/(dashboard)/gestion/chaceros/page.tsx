@@ -13,7 +13,7 @@ import { ListContainer } from "@/components/ui/ListContainer";
 import { Pagination } from "@/components/ui/Pagination";
 import { DetailCard } from "@/components/ui/DetailCard";
 
-import { FACULTADES_UNAL, ROLES_CHACEROS } from "@/constants";
+import { FACULTADES_UNAL, ROLES_CHACEROS, API_BASE_URL } from "@/constants";
 
 export const ChacerosPageInner: FC<IChacerosPageProps> = (props) => {
   const router = useRouter();
@@ -57,7 +57,7 @@ export const ChacerosPageInner: FC<IChacerosPageProps> = (props) => {
       setItemsPerPage(Number(savedPreference));
     }
 
-    fetch("http://localhost:8080/chaceros", {
+    fetch(`${API_BASE_URL}/chaceros`, {
       headers: {
         Authorization: `Bearer ${token}`
       }
@@ -106,7 +106,7 @@ export const ChacerosPageInner: FC<IChacerosPageProps> = (props) => {
     if (!target) return;
 
     try {
-      const response = await fetch("http://localhost:8080/chazas", {
+      const response = await fetch(`${API_BASE_URL}/chazas`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -164,7 +164,7 @@ export const ChacerosPageInner: FC<IChacerosPageProps> = (props) => {
     ) {
       try {
         const response = await fetch(
-          `http://localhost:8080/chaceros/${selectedChacero.id_chacero}`,
+          `${API_BASE_URL}/chaceros/${selectedChacero.id_chacero}`,
           {
             method: "DELETE",
             headers: {
@@ -178,7 +178,7 @@ export const ChacerosPageInner: FC<IChacerosPageProps> = (props) => {
         }
 
         const nuevosChaceros = await fetch(
-          "http://localhost:8080/chaceros",
+          `${API_BASE_URL}/chaceros`,
           {
             headers: {
               Authorization: `Bearer ${token}`
@@ -215,8 +215,8 @@ export const ChacerosPageInner: FC<IChacerosPageProps> = (props) => {
 
       const url =
         modalMode === "create"
-          ? "http://localhost:8080/chaceros"
-          : `http://localhost:8080/chaceros/${selectedChacero.id_chacero}`;
+          ? `${API_BASE_URL}/chaceros`
+          : `${API_BASE_URL}/chaceros/${selectedChacero.id_chacero}`;
       const method = modalMode === "create" ? "POST" : "PUT";
 
       const response = await fetch(url, {
@@ -236,7 +236,7 @@ export const ChacerosPageInner: FC<IChacerosPageProps> = (props) => {
       }
 
       const nuevosChaceros = await fetch(
-        "http://localhost:8080/chaceros",
+        `${API_BASE_URL}/chaceros`,
         {
           headers: {
             Authorization: `Bearer ${token}`

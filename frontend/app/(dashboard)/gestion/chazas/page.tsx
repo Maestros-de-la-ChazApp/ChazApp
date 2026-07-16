@@ -16,7 +16,8 @@ import { DetailCard } from "@/components/ui/DetailCard";
 import {
   PRODUCTOS_CHAZA,
   ZONAS_CAMPUS,
-  OPCIONES_COCINA
+  OPCIONES_COCINA,
+  API_BASE_URL
 } from "@/constants";
 
 const getSanctionLabel = (sancion: string | undefined, id: number): string => {
@@ -94,7 +95,7 @@ const WorkerSelector = ({ chazaOwnerEmail, existingWorkers, token, onWorkerAdded
 
   useEffect(() => {
     if (isAdding && token) {
-      fetch("http://localhost:8080/chaceros", {
+      fetch(`${API_BASE_URL}/chaceros`, {
         headers: { Authorization: `Bearer ${token}` }
       })
         .then(res => res.json())
@@ -142,7 +143,7 @@ const WorkerSelector = ({ chazaOwnerEmail, existingWorkers, token, onWorkerAdded
         chazaEmailId: chazaOwnerEmail
       };
 
-      const response = await fetch(`http://localhost:8080/chaceros/${chaceroToUpdate.id_chacero}`, {
+      const response = await fetch(`${API_BASE_URL}/chaceros/${chaceroToUpdate.id_chacero}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -283,7 +284,7 @@ export const ChazasPageInner: FC = () => {
       setItemsPerPage(Number(savedPreference));
     }
 
-    fetch("http://localhost:8080/chazas", {
+    fetch(`${API_BASE_URL}/chazas`, {
       headers: {
         Authorization: `Bearer ${token}`
       }
@@ -330,7 +331,7 @@ export const ChazasPageInner: FC = () => {
 
   const handleOpenDetailModal = async (id: number) => {
     try {
-      const response = await fetch(`http://localhost:8080/chazas/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/chazas/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -342,7 +343,7 @@ export const ChazasPageInner: FC = () => {
       const ownerEmail = listTarget?.correoChacero || "";
 
       // Fetch all chaceros to filter the ones working in this chaza
-      const chacerosResponse = await fetch("http://localhost:8080/chaceros", {
+      const chacerosResponse = await fetch(`${API_BASE_URL}/chaceros`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -371,7 +372,7 @@ export const ChazasPageInner: FC = () => {
 
   const handleOpenEditModal = async (id: number) => {
     try {
-      const response = await fetch(`http://localhost:8080/chazas/${id}`, {
+      const response = await fetch(`${API_BASE_URL}/chazas/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -383,7 +384,7 @@ export const ChazasPageInner: FC = () => {
       const ownerEmail = listTarget?.correoChacero || "";
 
       // Fetch workers of this chaza
-      const chacerosResponse = await fetch("http://localhost:8080/chaceros", {
+      const chacerosResponse = await fetch(`${API_BASE_URL}/chaceros`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -424,7 +425,7 @@ export const ChazasPageInner: FC = () => {
         ...worker,
         chazaEmailId: ""
       };
-      const response = await fetch(`http://localhost:8080/chaceros/${worker.id_chacero}`, {
+      const response = await fetch(`${API_BASE_URL}/chaceros/${worker.id_chacero}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -446,7 +447,7 @@ export const ChazasPageInner: FC = () => {
     if (confirm(`¿Desea eliminar definitivamente este registro (${nombreChaza})?`)) {
       try {
         const response = await fetch(
-          `http://localhost:8080/chazas/${selectedChaza.id_chaza}`,
+          `${API_BASE_URL}/chazas/${selectedChaza.id_chaza}`,
           {
             method: "DELETE",
             headers: {
@@ -460,7 +461,7 @@ export const ChazasPageInner: FC = () => {
         }
 
         const nuevasChazas = await fetch(
-          "http://localhost:8080/chazas",
+          `${API_BASE_URL}/chazas`,
           {
             headers: {
               Authorization: `Bearer ${token}`
@@ -494,7 +495,7 @@ export const ChazasPageInner: FC = () => {
           observaciones: data.observaciones
         };
 
-        const response = await fetch("http://localhost:8080/chazas", {
+        const response = await fetch(`${API_BASE_URL}/chazas`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -525,7 +526,7 @@ export const ChazasPageInner: FC = () => {
         };
 
         const response = await fetch(
-          `http://localhost:8080/chazas/${selectedChaza.id_chaza}`,
+          `${API_BASE_URL}/chazas/${selectedChaza.id_chaza}`,
           {
             method: "PUT",
             headers: {
@@ -542,7 +543,7 @@ export const ChazasPageInner: FC = () => {
       }
 
       const nuevasChazas = await fetch(
-        "http://localhost:8080/chazas",
+        `${API_BASE_URL}/chazas`,
         {
           headers: {
             Authorization: `Bearer ${token}`
