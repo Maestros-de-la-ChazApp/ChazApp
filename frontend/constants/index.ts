@@ -2,7 +2,7 @@ import { FormFieldOption } from "@/types";
 
 export const API_BASE_URL = typeof window !== "undefined" && window.location.hostname === "localhost"
   ? "http://localhost:8080"
-  : "http://3.145.80.179:8080";
+  : "http://18.222.139.203:8080";
 
 export const PRODUCTOS_CHAZA: FormFieldOption[] = [
   { label: "Paquetes, Empanadas, arepas, pasteles", value: "paquetes_fritos" },
