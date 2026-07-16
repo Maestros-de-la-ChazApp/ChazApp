@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Html5QrcodeScanner } from "html5-qrcode";
-import { X, CheckCircle2, ArrowLeftRight } from "lucide-react";
+import { Html5Qrcode } from "html5-qrcode";
+import { X, CheckCircle2, ArrowLeftRight, Loader2 } from "lucide-react";
 
 interface QrScannerModalProps {
   isOpen: boolean;
@@ -13,50 +13,81 @@ export default function QrScannerModal({ isOpen, onClose }: QrScannerModalProps)
   const [scanResult, setScanResult] = useState<string | null>(null);
   const [scanType, setScanType] = useState<"INGRESO" | "SALIDA" | null>(null);
   const [statusMessage, setStatusMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
-  const scannerRef = useRef<Html5QrcodeScanner | null>(null);
+  const [isCameraLoading, setIsCameraLoading] = useState(true);
+  const [cameraError, setCameraError] = useState<string | null>(null);
+  const html5QrCodeRef = useRef<Html5Qrcode | null>(null);
 
   useEffect(() => {
+    let active = true;
+
     if (isOpen && !scanResult) {
-      // Small timeout to ensure container is rendered
+      setIsCameraLoading(true);
+      setCameraError(null);
+
       const timer = setTimeout(() => {
+        if (!active) return;
+        
         try {
-          const scanner = new Html5QrcodeScanner(
-            "reader",
+          const html5QrCode = new Html5Qrcode("reader");
+          html5QrCodeRef.current = html5QrCode;
+
+          html5QrCode.start(
+            { facingMode: "environment" }, // Forces back camera!
             {
               fps: 10,
-              qrbox: { width: 250, height: 250 },
-              rememberLastUsedCamera: true,
-              supportedScanTypes: [0] // Html5QrcodeScanType.SCAN_TYPE_CAMERA
+              qrbox: (width, height) => {
+                const size = Math.min(width, height) * 0.7;
+                return { width: size, height: size };
+              }
             },
-            /* verbose= */ false
-          );
-
-          scanner.render(
             (decodedText) => {
               setScanResult(decodedText);
-              // Clear scanner once scan is successful
-              scanner.clear().catch(err => console.error("Failed to clear scanner", err));
+              stopScanner();
             },
             (errorMessage) => {
-              // Ignore constant scanner scanning logs
+              // Ignore constant scanner log messages
             }
-          );
-
-          scannerRef.current = scanner;
+          )
+          .then(() => {
+            if (active) {
+              setIsCameraLoading(false);
+            }
+          })
+          .catch((err) => {
+            console.error("Error al iniciar cámara:", err);
+            if (active) {
+              setCameraError("No se pudo acceder a la cámara trasera. Por favor, verifica los permisos.");
+              setIsCameraLoading(false);
+            }
+          });
         } catch (err) {
-          console.error("Error starting QR scanner:", err);
+          console.error("Error inicializando scanner:", err);
+          if (active) {
+            setCameraError("Error al iniciar el módulo de cámara.");
+            setIsCameraLoading(false);
+          }
         }
-      }, 300);
+      }, 350);
 
       return () => {
+        active = false;
         clearTimeout(timer);
-        if (scannerRef.current) {
-          scannerRef.current.clear().catch(err => console.error("Failed to clear scanner in cleanup", err));
-          scannerRef.current = null;
-        }
+        stopScanner();
       };
     }
   }, [isOpen, scanResult]);
+
+  const stopScanner = () => {
+    if (html5QrCodeRef.current) {
+      const qrScanner = html5QrCodeRef.current;
+      html5QrCodeRef.current = null;
+      
+      if (qrScanner.isScanning) {
+        qrScanner.stop()
+          .catch((err) => console.error("Error al detener el escáner:", err));
+      }
+    }
+  };
 
   const handleRegisterMovement = (type: "INGRESO" | "SALIDA") => {
     setScanType(type);
@@ -74,6 +105,13 @@ export default function QrScannerModal({ isOpen, onClose }: QrScannerModalProps)
     setScanResult(null);
     setScanType(null);
     setStatusMessage(null);
+    setIsCameraLoading(true);
+    setCameraError(null);
+  };
+
+  const handleClose = () => {
+    stopScanner();
+    onClose();
   };
 
   if (!isOpen) return null;
@@ -87,7 +125,7 @@ export default function QrScannerModal({ isOpen, onClose }: QrScannerModalProps)
             <ArrowLeftRight size={22} />
             <h2 className="text-xl font-bold font-sans">Escanear Código QR</h2>
           </div>
-          <button onClick={onClose} className="text-white/80 hover:text-white transition">
+          <button onClick={handleClose} className="text-white/80 hover:text-white transition">
             <X size={24} />
           </button>
         </div>
@@ -96,15 +134,37 @@ export default function QrScannerModal({ isOpen, onClose }: QrScannerModalProps)
         <div className="flex-1 p-6 overflow-y-auto flex flex-col justify-center items-center">
           {!scanResult ? (
             <div className="w-full flex flex-col items-center">
-              <p className="text-neutral-600 text-center mb-4 text-sm">
-                Coloca el código QR de la chaza frente a la cámara de tu celular.
+              <p className="text-neutral-600 text-center mb-4 text-sm font-semibold">
+                Ubica el código QR de la chaza dentro del cuadro para escanear.
               </p>
               
-              {/* Target Reader Container */}
-              <div 
-                id="reader" 
-                className="w-full max-w-[320px] rounded-lg overflow-hidden border border-neutral-200 bg-neutral-50 shadow-inner"
-              ></div>
+              {/* Camera Container */}
+              <div className="relative w-full max-w-[320px] aspect-square rounded-xl overflow-hidden border border-neutral-200 bg-neutral-900 shadow-inner flex items-center justify-center">
+                {isCameraLoading && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-neutral-900 text-white gap-2 z-10">
+                    <Loader2 className="animate-spin text-primary-200" size={32} />
+                    <span className="text-sm">Iniciando cámara trasera...</span>
+                  </div>
+                )}
+
+                {cameraError && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-neutral-900 text-white p-4 text-center gap-2 z-10">
+                    <span className="text-red-500 text-sm font-bold">{cameraError}</span>
+                    <button
+                      onClick={handleReset}
+                      className="mt-2 bg-primary-200 hover:bg-primary-200/90 text-white text-xs px-3 py-1.5 rounded-lg"
+                    >
+                      Reintentar
+                    </button>
+                  </div>
+                )}
+
+                <div id="reader" className="w-full h-full object-cover"></div>
+              </div>
+              
+              <p className="text-xs text-neutral-400 mt-4 text-center">
+                Solo se permite el uso de la cámara trasera
+              </p>
             </div>
           ) : (
             <div className="w-full flex flex-col items-center py-4">
@@ -121,16 +181,16 @@ export default function QrScannerModal({ isOpen, onClose }: QrScannerModalProps)
                     ¿Qué acción deseas registrar para esta chaza?
                   </p>
 
-                  <div className="flex flex-col gap-3">
+                  <div className="flex flex-col gap-3 w-full">
                     <button
                       onClick={() => handleRegisterMovement("INGRESO")}
-                      className="bg-primary-200 text-white font-bold py-3 px-6 rounded-tl-sm rounded-tr-lg rounded-br-sm rounded-bl-lg hover:bg-primary-200/90 transition shadow w-full"
+                      className="bg-primary-200 hover:bg-primary-200/90 text-white font-bold py-3 px-6 rounded-tl-sm rounded-tr-lg rounded-br-sm rounded-bl-lg transition shadow w-full"
                     >
                       Registrar INGRESO
                     </button>
                     <button
                       onClick={() => handleRegisterMovement("SALIDA")}
-                      className="bg-neutral-800 text-white font-bold py-3 px-6 rounded-tl-sm rounded-tr-lg rounded-br-sm rounded-bl-lg hover:bg-neutral-900 transition shadow w-full"
+                      className="bg-neutral-800 hover:bg-neutral-900 text-white font-bold py-3 px-6 rounded-tl-sm rounded-tr-lg rounded-br-sm rounded-bl-lg transition shadow w-full"
                     >
                       Registrar SALIDA
                     </button>
@@ -155,12 +215,12 @@ export default function QrScannerModal({ isOpen, onClose }: QrScannerModalProps)
                   <div className="flex flex-col gap-3 mt-6 w-full">
                     <button
                       onClick={handleReset}
-                      className="bg-primary-200 text-white font-bold py-2.5 px-6 rounded-tl-sm rounded-tr-lg rounded-br-sm rounded-bl-lg hover:bg-primary-200/90 transition shadow w-full"
+                      className="bg-primary-200 hover:bg-primary-200/90 text-white font-bold py-2.5 px-6 rounded-tl-sm rounded-tr-lg rounded-br-sm rounded-bl-lg transition shadow w-full"
                     >
                       Escanear otro QR
                     </button>
                     <button
-                      onClick={onClose}
+                      onClick={handleClose}
                       className="text-neutral-600 text-sm font-semibold hover:underline"
                     >
                       Cerrar
