@@ -59,7 +59,8 @@ export const ChacerosPageInner: FC<IChacerosPageProps> = (props) => {
 
     fetch(`${API_BASE_URL}/chaceros`, {
       headers: {
-        Authorization: `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
+        "ngrok-skip-browser-warning": "true"
       }
     })
       .then((response) => {
@@ -108,7 +109,8 @@ export const ChacerosPageInner: FC<IChacerosPageProps> = (props) => {
     try {
       const response = await fetch(`${API_BASE_URL}/chazas`, {
         headers: {
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
+          "ngrok-skip-browser-warning": "true"
         }
       });
       let associatedChazas: any[] = [];
@@ -168,7 +170,8 @@ export const ChacerosPageInner: FC<IChacerosPageProps> = (props) => {
           {
             method: "DELETE",
             headers: {
-              Authorization: `Bearer ${token}`
+              Authorization: `Bearer ${token}`,
+              "ngrok-skip-browser-warning": "true"
             }
           }
         );
@@ -181,7 +184,8 @@ export const ChacerosPageInner: FC<IChacerosPageProps> = (props) => {
           `${API_BASE_URL}/chaceros`,
           {
             headers: {
-              Authorization: `Bearer ${token}`
+              Authorization: `Bearer ${token}`,
+              "ngrok-skip-browser-warning": "true"
             }
           }
         );
@@ -223,7 +227,8 @@ export const ChacerosPageInner: FC<IChacerosPageProps> = (props) => {
         method: method,
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
+          "ngrok-skip-browser-warning": "true"
         },
         body: JSON.stringify(payload)
       });
@@ -239,7 +244,8 @@ export const ChacerosPageInner: FC<IChacerosPageProps> = (props) => {
         `${API_BASE_URL}/chaceros`,
         {
           headers: {
-            Authorization: `Bearer ${token}`
+            Authorization: `Bearer ${token}`,
+            "ngrok-skip-browser-warning": "true"
           }
         }
       );

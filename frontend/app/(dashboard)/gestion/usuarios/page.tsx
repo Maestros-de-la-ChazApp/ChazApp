@@ -33,7 +33,8 @@ export const UsuariosPage: FC = () => {
     try {
       const response = await fetch(`${API_BASE_URL}/usuarios`, {
         headers: {
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
+          "ngrok-skip-browser-warning": "true"
         }
       });
       if (response.ok) {
@@ -82,7 +83,8 @@ export const UsuariosPage: FC = () => {
         const response = await fetch(`${API_BASE_URL}/usuarios/${selectedUser.id_usuario}`, {
           method: "DELETE",
           headers: {
-            Authorization: `Bearer ${token}`
+            Authorization: `Bearer ${token}`,
+            "ngrok-skip-browser-warning": "true"
           }
         });
         if (response.ok) {
@@ -115,7 +117,8 @@ export const UsuariosPage: FC = () => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`
+            Authorization: `Bearer ${token}`,
+            "ngrok-skip-browser-warning": "true"
           },
           body: JSON.stringify(payload)
         });
@@ -124,7 +127,8 @@ export const UsuariosPage: FC = () => {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`
+            Authorization: `Bearer ${token}`,
+            "ngrok-skip-browser-warning": "true"
           },
           body: JSON.stringify(payload)
         });

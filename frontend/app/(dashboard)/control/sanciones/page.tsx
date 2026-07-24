@@ -57,7 +57,10 @@ export const SancionesPage: FC = () => {
     if (!token) return;
     try {
       const response = await fetch(`${API_BASE_URL}/chazas`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          "ngrok-skip-browser-warning": "true"
+        }
       });
       if (response.ok) {
         const data = await response.json();
@@ -74,7 +77,10 @@ export const SancionesPage: FC = () => {
     if (!token) return;
     try {
       const response = await fetch(`${API_BASE_URL}/situaciones`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          "ngrok-skip-browser-warning": "true"
+        }
       });
       if (response.ok) {
         const data = await response.json();
@@ -96,7 +102,10 @@ export const SancionesPage: FC = () => {
     if (!email) return;
     try {
       const response = await fetch(`${API_BASE_URL}/usuarios`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          "ngrok-skip-browser-warning": "true"
+        }
       });
       if (response.ok) {
         const data = await response.json();
@@ -168,7 +177,8 @@ export const SancionesPage: FC = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
+          "ngrok-skip-browser-warning": "true"
         },
         body: JSON.stringify(payload)
       });

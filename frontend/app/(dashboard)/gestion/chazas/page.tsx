@@ -96,7 +96,10 @@ const WorkerSelector = ({ chazaOwnerEmail, existingWorkers, token, onWorkerAdded
   useEffect(() => {
     if (isAdding && token) {
       fetch(`${API_BASE_URL}/chaceros`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          "ngrok-skip-browser-warning": "true"
+        }
       })
         .then(res => res.json())
         .then(data => {
@@ -147,7 +150,8 @@ const WorkerSelector = ({ chazaOwnerEmail, existingWorkers, token, onWorkerAdded
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
+          "ngrok-skip-browser-warning": "true"
         },
         body: JSON.stringify(payload)
       });
@@ -286,7 +290,8 @@ export const ChazasPageInner: FC = () => {
 
     fetch(`${API_BASE_URL}/chazas`, {
       headers: {
-        Authorization: `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
+        "ngrok-skip-browser-warning": "true"
       }
     })
       .then((response) => {
@@ -333,7 +338,8 @@ export const ChazasPageInner: FC = () => {
     try {
       const response = await fetch(`${API_BASE_URL}/chazas/${id}`, {
         headers: {
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
+          "ngrok-skip-browser-warning": "true"
         }
       });
       if (!response.ok) throw new Error("Error al obtener la chaza");
@@ -345,7 +351,8 @@ export const ChazasPageInner: FC = () => {
       // Fetch all chaceros to filter the ones working in this chaza
       const chacerosResponse = await fetch(`${API_BASE_URL}/chaceros`, {
         headers: {
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
+          "ngrok-skip-browser-warning": "true"
         }
       });
       let trabajadores: any[] = [];
@@ -374,7 +381,8 @@ export const ChazasPageInner: FC = () => {
     try {
       const response = await fetch(`${API_BASE_URL}/chazas/${id}`, {
         headers: {
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
+          "ngrok-skip-browser-warning": "true"
         }
       });
       if (!response.ok) throw new Error("Error al obtener la chaza");
@@ -386,7 +394,8 @@ export const ChazasPageInner: FC = () => {
       // Fetch workers of this chaza
       const chacerosResponse = await fetch(`${API_BASE_URL}/chaceros`, {
         headers: {
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
+          "ngrok-skip-browser-warning": "true"
         }
       });
       let trabajadores: any[] = [];
@@ -429,7 +438,8 @@ export const ChazasPageInner: FC = () => {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
+          "ngrok-skip-browser-warning": "true"
         },
         body: JSON.stringify(payload)
       });
@@ -451,7 +461,8 @@ export const ChazasPageInner: FC = () => {
           {
             method: "DELETE",
             headers: {
-              Authorization: `Bearer ${token}`
+              Authorization: `Bearer ${token}`,
+              "ngrok-skip-browser-warning": "true"
             }
           }
         );
@@ -464,7 +475,8 @@ export const ChazasPageInner: FC = () => {
           `${API_BASE_URL}/chazas`,
           {
             headers: {
-              Authorization: `Bearer ${token}`
+              Authorization: `Bearer ${token}`,
+              "ngrok-skip-browser-warning": "true"
             }
           }
         );
@@ -499,7 +511,8 @@ export const ChazasPageInner: FC = () => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`
+            Authorization: `Bearer ${token}`,
+            "ngrok-skip-browser-warning": "true"
           },
           body: JSON.stringify(payload)
         });
@@ -531,7 +544,8 @@ export const ChazasPageInner: FC = () => {
             method: "PUT",
             headers: {
               "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`
+              Authorization: `Bearer ${token}`,
+              "ngrok-skip-browser-warning": "true"
             },
             body: JSON.stringify(payload)
           }
@@ -546,7 +560,8 @@ export const ChazasPageInner: FC = () => {
         `${API_BASE_URL}/chazas`,
         {
           headers: {
-            Authorization: `Bearer ${token}`
+            Authorization: `Bearer ${token}`,
+            "ngrok-skip-browser-warning": "true"
           }
         }
       );
