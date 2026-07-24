@@ -60,7 +60,7 @@ export const GestionPage: FC<IGestionPageProps> = (props) => {
         </p>
       </div>
 
-      <div className={`grid grid-cols-1 ${admin ? "md:grid-cols-2 lg:grid-cols-4" : "md:grid-cols-2"} gap-6 mt-2`}>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-2">
         {menuItems.map((item) => {
           const Icon = item.icon;
           return (
