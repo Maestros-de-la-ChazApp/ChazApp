@@ -1,23 +1,36 @@
 "use client";
 
-import { FC, useState } from "react";
+import { FC, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { User, Bell, Sliders, Info, ShieldAlert, Check, LogOut } from "lucide-react";
+import { User, Bell, Sliders, Info, ShieldAlert, Check, LogOut, Clock, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { IAjustesPageProps } from "@/types";
+import { isAdmin } from "@/utils/auth";
+import { getScheduleRules, saveScheduleRules, ScheduleRules, DEFAULT_SCHEDULE_RULES } from "@/utils/scheduleConfig";
 
 export const AjustesPage: FC<IAjustesPageProps> = (props) => {
   const router = useRouter();
   const [emailAlerts, setEmailAlerts] = useState(true);
   const [pushNotifications, setPushNotifications] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [admin, setAdmin] = useState(false);
+
+  const [scheduleRules, setScheduleRules] = useState<ScheduleRules>(DEFAULT_SCHEDULE_RULES);
+
+  useEffect(() => {
+    setAdmin(isAdmin());
+    setScheduleRules(getScheduleRules());
+  }, []);
 
   const handleSave = () => {
     setIsSaving(true);
+    if (admin) {
+      saveScheduleRules(scheduleRules);
+    }
     setTimeout(() => {
       setIsSaving(false);
       alert("Ajustes guardados correctamente.");
-    }, 800);
+    }, 600);
   };
 
   const handleLogout = () => {

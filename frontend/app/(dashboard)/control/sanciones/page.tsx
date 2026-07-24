@@ -11,6 +11,7 @@ import { Pagination } from "@/components/ui/Pagination";
 import { Select } from "@/components/ui/Select";
 import { Input } from "@/components/ui/Input";
 import { API_BASE_URL } from "@/constants";
+import { isAdmin } from "@/utils/auth";
 
 const formatTime = (dateString: string | undefined): string => {
   if (!dateString) return "No disponible";
@@ -40,6 +41,7 @@ export const SancionesPage: FC = () => {
   const [chazasList, setChazasList] = useState<any[]>([]);
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
   const [token, setToken] = useState<string | null>(null);
+  const [admin, setAdmin] = useState(false);
 
   // Form states
   const [emailInput, setEmailInput] = useState("");
@@ -51,6 +53,7 @@ export const SancionesPage: FC = () => {
 
   useEffect(() => {
     setToken(localStorage.getItem("token"));
+    setAdmin(isAdmin());
   }, []);
 
   const fetchChazas = async () => {

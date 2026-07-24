@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Html5Qrcode } from "html5-qrcode";
 import { X, CheckCircle2, ArrowLeftRight, Loader2 } from "lucide-react";
+import { validateEntrySchedule, validateExitSchedule } from "@/utils/scheduleConfig";
 
 interface QrScannerModalProps {
   isOpen: boolean;
@@ -92,13 +93,22 @@ export default function QrScannerModal({ isOpen, onClose }: QrScannerModalProps)
   const handleRegisterMovement = (type: "INGRESO" | "SALIDA") => {
     setScanType(type);
     
-    // Simulate successful API response
+    const now = new Date();
+    const check = type === "INGRESO" ? validateEntrySchedule(now) : validateExitSchedule(now);
+
     setTimeout(() => {
-      setStatusMessage({
-        type: "success",
-        text: `Se registró exitosamente la ${type === "INGRESO" ? "ENTRADA" : "SALIDA"} para la chaza con ID/QR: "${scanResult}".`
-      });
-    }, 800);
+      if (!check.isValid) {
+        setStatusMessage({
+          type: "error",
+          text: `⚠️ Sanción Automática Registrada: ${check.reason} Se ha procesado la ${type === "INGRESO" ? "ENTRADA" : "SALIDA"} para la chaza "${scanResult}" con notificación de infracción.`
+        });
+      } else {
+        setStatusMessage({
+          type: "success",
+          text: `Se registró exitosamente la ${type === "INGRESO" ? "ENTRADA" : "SALIDA"} para la chaza con ID/QR: "${scanResult}".`
+        });
+      }
+    }, 600);
   };
 
   const handleReset = () => {

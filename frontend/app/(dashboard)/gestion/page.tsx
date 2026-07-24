@@ -2,7 +2,7 @@
 
 import { FC } from "react";
 import { useRouter } from "next/navigation";
-import { Users, Store, ChevronRight, UserCheck } from "lucide-react";
+import { Users, Store, ChevronRight, UserCheck, ShieldAlert } from "lucide-react";
 import { IGestionPageProps } from "@/types";
 
 import { isAdmin } from "@/utils/auth";
@@ -32,13 +32,22 @@ export const GestionPage: FC<IGestionPageProps> = (props) => {
       color: "bg-info-100 text-info-300",
     },
     {
+      title: "Gestión de Reglas de Sanción",
+      description: "Configura las reglas del semáforo de sanciones, duraciones y sanciones personalizadas.",
+      path: "/gestion/reglas-sanciones",
+      icon: ShieldAlert,
+      color: "bg-red-100 text-red-500",
+      adminOnly: true
+    },
+    {
       title: "Gestión de Usuarios",
       description: "Administra los usuarios del sistema, sus roles (Admin, Seguridad, Celador) y sus accesos.",
       path: "/gestion/usuarios",
       icon: UserCheck,
       color: "bg-purple-100 text-purple-300",
+      adminOnly: true
     },
-  ].filter((item) => item.path !== "/gestion/usuarios" || admin);
+  ].filter((item) => !item.adminOnly || admin);
 
   return (
     <div className="flex flex-col gap-8 p-4 w-full max-w-5xl mx-auto text-left">
@@ -51,7 +60,7 @@ export const GestionPage: FC<IGestionPageProps> = (props) => {
         </p>
       </div>
 
-      <div className={`grid grid-cols-1 ${admin ? "md:grid-cols-3" : "md:grid-cols-2"} gap-6 mt-2`}>
+      <div className={`grid grid-cols-1 ${admin ? "md:grid-cols-2 lg:grid-cols-4" : "md:grid-cols-2"} gap-6 mt-2`}>
         {menuItems.map((item) => {
           const Icon = item.icon;
           return (
