@@ -11,7 +11,11 @@ import { Pagination } from "@/components/ui/Pagination";
 import { FormField } from "@/types";
 import { API_BASE_URL } from "@/constants";
 
+import { useRouter } from "next/navigation";
+import { isAdmin } from "@/utils/auth";
+
 export const UsuariosPage: FC = () => {
+  const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [modalMode, setModalMode] = useState<"create" | "edit">("create");
@@ -26,7 +30,10 @@ export const UsuariosPage: FC = () => {
 
   useEffect(() => {
     setToken(localStorage.getItem("token"));
-  }, []);
+    if (!isAdmin()) {
+      router.push("/dashboard");
+    }
+  }, [router]);
 
   const fetchUsuarios = async () => {
     if (!token) return;

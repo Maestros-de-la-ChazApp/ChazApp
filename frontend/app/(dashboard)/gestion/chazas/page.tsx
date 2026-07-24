@@ -19,6 +19,7 @@ import {
   OPCIONES_COCINA,
   API_BASE_URL
 } from "@/constants";
+import { isAdmin } from "@/utils/auth";
 
 const getSanctionLabel = (sancion: string | undefined, id: number): string => {
   if (sancion) {
@@ -259,12 +260,14 @@ export const ChazasPageInner: FC = () => {
 
   const [chazas, setChazas] = useState<any[]>([]);
   const [token, setToken] = useState<string | null>(null);
+  const [admin, setAdmin] = useState(false);
 
   const searchParams = useSearchParams();
   const viewId = searchParams.get("view");
 
   useEffect(() => {
     setToken(localStorage.getItem("token"));
+    setAdmin(isAdmin());
   }, []);
 
   useEffect(() => {
@@ -672,15 +675,17 @@ export const ChazasPageInner: FC = () => {
           </p>
         </div>
 
-        <Button
-          variant="primary"
-          shape="asymmetric"
-          icon={Plus}
-          onClick={handleOpenCreateModal}
-          className="w-full md:w-auto"
-        >
-          Agregar chaza
-        </Button>
+        {admin && (
+          <Button
+            variant="primary"
+            shape="asymmetric"
+            icon={Plus}
+            onClick={handleOpenCreateModal}
+            className="w-full md:w-auto"
+          >
+            Agregar chaza
+          </Button>
+        )}
       </div>
 
       <div className="w-full flex flex-col items-center gap-4">
@@ -790,7 +795,7 @@ export const ChazasPageInner: FC = () => {
           subtitle="Información completa del puesto comercial"
           icon={Store}
           onClose={() => setIsDetailOpen(false)}
-          onEdit={detailChaza ? () => {
+          onEdit={admin && detailChaza ? () => {
             setIsDetailOpen(false);
             handleOpenEditModal(detailChaza.id_chaza || detailChaza.idChaza);
           } : undefined}

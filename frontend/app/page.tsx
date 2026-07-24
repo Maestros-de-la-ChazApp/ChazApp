@@ -39,6 +39,15 @@ export default function Home() {
         localStorage.setItem("token", tokenPlano);
         localStorage.setItem("userEmail", formData.usuario);
 
+        try {
+          const payload = JSON.parse(atob(tokenPlano.split('.')[1]));
+          if (payload && payload.rol) {
+            localStorage.setItem("userRole", payload.rol);
+          }
+        } catch (e) {
+          console.error("Error decoding JWT payload:", e);
+        }
+
         // 3. Redirección inmediata al dashboard
         router.push("/dashboard");
       } else {

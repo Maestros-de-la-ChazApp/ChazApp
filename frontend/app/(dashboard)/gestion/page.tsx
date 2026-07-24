@@ -5,8 +5,16 @@ import { useRouter } from "next/navigation";
 import { Users, Store, ChevronRight, UserCheck } from "lucide-react";
 import { IGestionPageProps } from "@/types";
 
+import { isAdmin } from "@/utils/auth";
+import { useEffect, useState } from "react";
+
 export const GestionPage: FC<IGestionPageProps> = (props) => {
   const router = useRouter();
+  const [admin, setAdmin] = useState(false);
+
+  useEffect(() => {
+    setAdmin(isAdmin());
+  }, []);
 
   const menuItems = [
     {
@@ -30,7 +38,7 @@ export const GestionPage: FC<IGestionPageProps> = (props) => {
       icon: UserCheck,
       color: "bg-purple-100 text-purple-300",
     },
-  ];
+  ].filter((item) => item.path !== "/gestion/usuarios" || admin);
 
   return (
     <div className="flex flex-col gap-8 p-4 w-full max-w-5xl mx-auto text-left">
@@ -43,7 +51,7 @@ export const GestionPage: FC<IGestionPageProps> = (props) => {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-2">
+      <div className={`grid grid-cols-1 ${admin ? "md:grid-cols-3" : "md:grid-cols-2"} gap-6 mt-2`}>
         {menuItems.map((item) => {
           const Icon = item.icon;
           return (
