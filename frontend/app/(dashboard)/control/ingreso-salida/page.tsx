@@ -11,6 +11,7 @@ import { Pagination } from "@/components/ui/Pagination";
 import { Select } from "@/components/ui/Select";
 import { Input } from "@/components/ui/Input";
 import { FormField } from "@/types";
+import { API_BASE_URL } from "@/constants";
 
 const formatTime = (dateString: string | undefined): string => {
   if (!dateString) return "No disponible";
@@ -58,7 +59,7 @@ export const IngresoSalidaPage: FC = () => {
   const fetchChazas = async () => {
     if (!token) return;
     try {
-      const response = await fetch("http://localhost:8080/chazas", {
+      const response = await fetch(`${API_BASE_URL}/chazas`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -77,7 +78,7 @@ export const IngresoSalidaPage: FC = () => {
   const fetchMovimientos = async () => {
     if (!token) return;
     try {
-      const response = await fetch("http://localhost:8080/movimientos", {
+      const response = await fetch(`${API_BASE_URL}/movimientos`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -138,7 +139,7 @@ export const IngresoSalidaPage: FC = () => {
         porteria: porteria
       };
 
-      const response = await fetch("http://localhost:8080/movimientos", {
+      const response = await fetch(`${API_BASE_URL}/movimientos`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

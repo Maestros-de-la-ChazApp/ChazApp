@@ -3,6 +3,7 @@
 import { Info, Users, LockKeyhole } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { API_BASE_URL } from "@/constants";
 
 export default function Home() {
 
@@ -16,7 +17,7 @@ export default function Home() {
 
     try {
       const response = await fetch(
-        'http://localhost:8080/usuarios/login',
+        `${API_BASE_URL}/usuarios/login`,
         {
           method: 'POST',
           headers: {

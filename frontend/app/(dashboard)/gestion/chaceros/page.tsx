@@ -1,6 +1,6 @@
 "use client";
 
-import { FC, useState, useEffect } from "react";
+import { FC, useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { IChacerosPageProps, FormField } from "@/types";
@@ -13,9 +13,9 @@ import { ListContainer } from "@/components/ui/ListContainer";
 import { Pagination } from "@/components/ui/Pagination";
 import { DetailCard } from "@/components/ui/DetailCard";
 
-import { FACULTADES_UNAL, ROLES_CHACEROS } from "@/constants";
+import { FACULTADES_UNAL, ROLES_CHACEROS, API_BASE_URL } from "@/constants";
 
-export const ChacerosPage: FC<IChacerosPageProps> = (props) => {
+export const ChacerosPageInner: FC<IChacerosPageProps> = (props) => {
   const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -57,7 +57,7 @@ export const ChacerosPage: FC<IChacerosPageProps> = (props) => {
       setItemsPerPage(Number(savedPreference));
     }
 
-    fetch("http://localhost:8080/chaceros", {
+    fetch(`${API_BASE_URL}/chaceros`, {
       headers: {
         Authorization: `Bearer ${token}`
       }
@@ -106,7 +106,7 @@ export const ChacerosPage: FC<IChacerosPageProps> = (props) => {
     if (!target) return;
 
     try {
-      const response = await fetch("http://localhost:8080/chazas", {
+      const response = await fetch(`${API_BASE_URL}/chazas`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -164,7 +164,7 @@ export const ChacerosPage: FC<IChacerosPageProps> = (props) => {
     ) {
       try {
         const response = await fetch(
-          `http://localhost:8080/chaceros/${selectedChacero.id_chacero}`,
+          `${API_BASE_URL}/chaceros/${selectedChacero.id_chacero}`,
           {
             method: "DELETE",
             headers: {
@@ -178,7 +178,7 @@ export const ChacerosPage: FC<IChacerosPageProps> = (props) => {
         }
 
         const nuevosChaceros = await fetch(
-          "http://localhost:8080/chaceros",
+          `${API_BASE_URL}/chaceros`,
           {
             headers: {
               Authorization: `Bearer ${token}`
@@ -215,8 +215,8 @@ export const ChacerosPage: FC<IChacerosPageProps> = (props) => {
 
       const url =
         modalMode === "create"
-          ? "http://localhost:8080/chaceros"
-          : `http://localhost:8080/chaceros/${selectedChacero.id_chacero}`;
+          ? `${API_BASE_URL}/chaceros`
+          : `${API_BASE_URL}/chaceros/${selectedChacero.id_chacero}`;
       const method = modalMode === "create" ? "POST" : "PUT";
 
       const response = await fetch(url, {
@@ -236,7 +236,7 @@ export const ChacerosPage: FC<IChacerosPageProps> = (props) => {
       }
 
       const nuevosChaceros = await fetch(
-        "http://localhost:8080/chaceros",
+        `${API_BASE_URL}/chaceros`,
         {
           headers: {
             Authorization: `Bearer ${token}`
@@ -479,6 +479,18 @@ export const ChacerosPage: FC<IChacerosPageProps> = (props) => {
         </Modal>
       </div>
     </div>
+  );
+};
+
+export const ChacerosPage: FC<IChacerosPageProps> = (props) => {
+  return (
+    <Suspense fallback={
+      <div className="flex flex-col gap-6 p-4 w-full max-w-5xl mx-auto items-center justify-center min-h-[50vh]">
+        <p className="text-sm text-neutral-600 font-medium">Cargando chaceros...</p>
+      </div>
+    }>
+      <ChacerosPageInner {...props} />
+    </Suspense>
   );
 };
 
