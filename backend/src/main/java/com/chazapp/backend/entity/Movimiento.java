@@ -1,5 +1,6 @@
 package com.chazapp.backend.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -18,17 +19,25 @@ public class Movimiento {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id_movimiento;
+    @Column(name = "id_movimiento")
+    @JsonProperty("id_movimiento")
+    private Integer idMovimiento;
 
-    private Integer id_chaza;
+    @Column(name = "id_chaza")
+    @JsonProperty("id_chaza")
+    private Integer idChaza;
 
     private String tipo;
 
-    private LocalDateTime fecha_hora;
+    @Column(name = "fecha_hora")
+    @JsonProperty("fecha_hora")
+    private LocalDateTime fechaHora;
 
     private String porteria;
 
-    private Integer id_usuario;
+    @Column(name = "id_usuario")
+    @JsonProperty("id_usuario")
+    private Integer idUsuario;
 
     @Transient
     private String nombreChaza;

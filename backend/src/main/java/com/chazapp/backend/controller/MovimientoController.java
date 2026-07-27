@@ -6,11 +6,11 @@ import com.chazapp.backend.service.MovimientoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 
 @RestController
 @RequestMapping("/movimientos")
-
 public class MovimientoController {
 
     @Autowired
@@ -31,8 +31,12 @@ public class MovimientoController {
 
     @PostMapping
     public Movimiento createMovimiento(
-            @RequestBody Movimiento movimiento) {
-        return service.createMovimiento(movimiento);
+            @RequestBody Movimiento movimiento,
+            Principal principal) {
+        return service.createMovimiento(
+                movimiento,
+                principal
+        );
     }
 
     @PutMapping("/{id}")
