@@ -11,6 +11,7 @@ import { Pagination } from "@/components/ui/Pagination";
 import { Select } from "@/components/ui/Select";
 import { Input } from "@/components/ui/Input";
 import { API_BASE_URL } from "@/constants";
+import { isAdmin } from "@/utils/auth";
 
 const formatTime = (dateString: string | undefined): string => {
   if (!dateString) return "No disponible";
@@ -40,6 +41,7 @@ export const SancionesPage: FC = () => {
   const [chazasList, setChazasList] = useState<any[]>([]);
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
   const [token, setToken] = useState<string | null>(null);
+  const [admin, setAdmin] = useState(false);
 
   // Form states
   const [emailInput, setEmailInput] = useState("");
@@ -51,13 +53,17 @@ export const SancionesPage: FC = () => {
 
   useEffect(() => {
     setToken(localStorage.getItem("token"));
+    setAdmin(isAdmin());
   }, []);
 
   const fetchChazas = async () => {
     if (!token) return;
     try {
       const response = await fetch(`${API_BASE_URL}/chazas`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          "ngrok-skip-browser-warning": "true"
+        }
       });
       if (response.ok) {
         const data = await response.json();
@@ -74,7 +80,10 @@ export const SancionesPage: FC = () => {
     if (!token) return;
     try {
       const response = await fetch(`${API_BASE_URL}/situaciones`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          "ngrok-skip-browser-warning": "true"
+        }
       });
       if (response.ok) {
         const data = await response.json();
@@ -96,7 +105,10 @@ export const SancionesPage: FC = () => {
     if (!email) return;
     try {
       const response = await fetch(`${API_BASE_URL}/usuarios`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          "ngrok-skip-browser-warning": "true"
+        }
       });
       if (response.ok) {
         const data = await response.json();
@@ -168,7 +180,8 @@ export const SancionesPage: FC = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
+          "ngrok-skip-browser-warning": "true"
         },
         body: JSON.stringify(payload)
       });

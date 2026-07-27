@@ -22,6 +22,7 @@ export default function Home() {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            'ngrok-skip-browser-warning': 'true',
           },
           body: JSON.stringify({
             email: formData.usuario,
@@ -37,6 +38,15 @@ export default function Home() {
         // 2. Guardar el token crudo directamente en el almacenamiento
         localStorage.setItem("token", tokenPlano);
         localStorage.setItem("userEmail", formData.usuario);
+
+        try {
+          const payload = JSON.parse(atob(tokenPlano.split('.')[1]));
+          if (payload && payload.rol) {
+            localStorage.setItem("userRole", payload.rol);
+          }
+        } catch (e) {
+          console.error("Error decoding JWT payload:", e);
+        }
 
         // 3. Redirección inmediata al dashboard
         router.push("/dashboard");

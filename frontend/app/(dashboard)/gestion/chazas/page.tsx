@@ -19,6 +19,8 @@ import {
   OPCIONES_COCINA,
   API_BASE_URL
 } from "@/constants";
+import { isAdmin } from "@/utils/auth";
+import { calculateSanctionEndDate, getScheduleRules } from "@/utils/scheduleConfig";
 
 const getSanctionLabel = (sancion: string | undefined, id: number): string => {
   if (sancion) {
@@ -96,7 +98,10 @@ const WorkerSelector = ({ chazaOwnerEmail, existingWorkers, token, onWorkerAdded
   useEffect(() => {
     if (isAdding && token) {
       fetch(`${API_BASE_URL}/chaceros`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          "ngrok-skip-browser-warning": "true"
+        }
       })
         .then(res => res.json())
         .then(data => {
@@ -147,7 +152,8 @@ const WorkerSelector = ({ chazaOwnerEmail, existingWorkers, token, onWorkerAdded
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
+          "ngrok-skip-browser-warning": "true"
         },
         body: JSON.stringify(payload)
       });
@@ -255,12 +261,15 @@ export const ChazasPageInner: FC = () => {
 
   const [chazas, setChazas] = useState<any[]>([]);
   const [token, setToken] = useState<string | null>(null);
+  const [admin, setAdmin] = useState(false);
+  const [sanctionFilter, setSanctionFilter] = useState<"all" | "sanctioned" | "unsanctioned">("all");
 
   const searchParams = useSearchParams();
   const viewId = searchParams.get("view");
 
   useEffect(() => {
     setToken(localStorage.getItem("token"));
+    setAdmin(isAdmin());
   }, []);
 
   useEffect(() => {
@@ -286,7 +295,8 @@ export const ChazasPageInner: FC = () => {
 
     fetch(`${API_BASE_URL}/chazas`, {
       headers: {
-        Authorization: `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
+        "ngrok-skip-browser-warning": "true"
       }
     })
       .then((response) => {
@@ -333,7 +343,8 @@ export const ChazasPageInner: FC = () => {
     try {
       const response = await fetch(`${API_BASE_URL}/chazas/${id}`, {
         headers: {
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
+          "ngrok-skip-browser-warning": "true"
         }
       });
       if (!response.ok) throw new Error("Error al obtener la chaza");
@@ -345,7 +356,8 @@ export const ChazasPageInner: FC = () => {
       // Fetch all chaceros to filter the ones working in this chaza
       const chacerosResponse = await fetch(`${API_BASE_URL}/chaceros`, {
         headers: {
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
+          "ngrok-skip-browser-warning": "true"
         }
       });
       let trabajadores: any[] = [];
@@ -374,7 +386,8 @@ export const ChazasPageInner: FC = () => {
     try {
       const response = await fetch(`${API_BASE_URL}/chazas/${id}`, {
         headers: {
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
+          "ngrok-skip-browser-warning": "true"
         }
       });
       if (!response.ok) throw new Error("Error al obtener la chaza");
@@ -386,7 +399,8 @@ export const ChazasPageInner: FC = () => {
       // Fetch workers of this chaza
       const chacerosResponse = await fetch(`${API_BASE_URL}/chaceros`, {
         headers: {
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
+          "ngrok-skip-browser-warning": "true"
         }
       });
       let trabajadores: any[] = [];
@@ -407,6 +421,7 @@ export const ChazasPageInner: FC = () => {
         zonaCampus: chaza.ubicacion || "",
         cantidadCarpas: chaza.num_carpas || 1,
         cocinaCampus: chaza.tiene_cocina ? "Sí" : "No",
+        tipoSancion: chaza.suspendida ? (chaza.sancion || "una_semana") : "ninguna",
         observaciones: chaza.observaciones || ""
       });
       setIsModalOpen(true);
@@ -429,7 +444,8 @@ export const ChazasPageInner: FC = () => {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
+          "ngrok-skip-browser-warning": "true"
         },
         body: JSON.stringify(payload)
       });
@@ -451,7 +467,8 @@ export const ChazasPageInner: FC = () => {
           {
             method: "DELETE",
             headers: {
-              Authorization: `Bearer ${token}`
+              Authorization: `Bearer ${token}`,
+              "ngrok-skip-browser-warning": "true"
             }
           }
         );
@@ -464,7 +481,8 @@ export const ChazasPageInner: FC = () => {
           `${API_BASE_URL}/chazas`,
           {
             headers: {
-              Authorization: `Bearer ${token}`
+              Authorization: `Bearer ${token}`,
+              "ngrok-skip-browser-warning": "true"
             }
           }
         );
@@ -499,7 +517,8 @@ export const ChazasPageInner: FC = () => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`
+            Authorization: `Bearer ${token}`,
+            "ngrok-skip-browser-warning": "true"
           },
           body: JSON.stringify(payload)
         });
@@ -509,6 +528,11 @@ export const ChazasPageInner: FC = () => {
           throw new Error(error.error || "Error al registrar la chaza");
         }
       } else {
+        const rules = getScheduleRules();
+        const sanctionTypeSelected = (data.tipoSancion as string) || "ninguna";
+        const endDateCalculated = calculateSanctionEndDate(sanctionTypeSelected, rules.customSanctions);
+        const isNowSuspended = endDateCalculated !== null;
+
         const payload = {
           id_chaza: selectedChaza.id_chaza,
           id_chacero: selectedChaza.id_chacero,
@@ -519,8 +543,9 @@ export const ChazasPageInner: FC = () => {
           num_carpas: Number(data.cantidadCarpas),
           tiene_cocina: data.cocinaCampus === "Sí",
           dentro: selectedChaza.dentro,
-          suspendida: selectedChaza.suspendida,
-          fecha_fin_sancion: selectedChaza.fecha_fin_sancion,
+          suspendida: isNowSuspended,
+          fecha_fin_sancion: endDateCalculated ? endDateCalculated.toISOString() : null,
+          sancion: sanctionTypeSelected,
           observaciones: data.observaciones,
           fecha_registro: selectedChaza.fecha_registro
         };
@@ -531,7 +556,8 @@ export const ChazasPageInner: FC = () => {
             method: "PUT",
             headers: {
               "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`
+              Authorization: `Bearer ${token}`,
+              "ngrok-skip-browser-warning": "true"
             },
             body: JSON.stringify(payload)
           }
@@ -546,7 +572,8 @@ export const ChazasPageInner: FC = () => {
         `${API_BASE_URL}/chazas`,
         {
           headers: {
-            Authorization: `Bearer ${token}`
+            Authorization: `Bearer ${token}`,
+            "ngrok-skip-browser-warning": "true"
           }
         }
       );
@@ -630,17 +657,45 @@ export const ChazasPageInner: FC = () => {
       placeholder:
         "Detalles adicionales sobre infraestructura o restricciones de horarios...",
       required: false
-    }
+    },
+    ...(modalMode === "edit" && admin
+      ? [
+          {
+            name: "tipoSancion",
+            label: "Sanción / Estado de Suspensión",
+            type: "select" as const,
+            required: true,
+            options: [
+              { label: "🟢 Sin Sanción / Levantar Suspensión", value: "ninguna" },
+              { label: "🟢 Llamado de Atención (Advertencia)", value: "llamado_atencion" },
+              { label: "🟡 Bloqueo del Siguiente Jueves", value: "siguiente_jueves" },
+              { label: "🟠 Sanción de Una Semana (7 días)", value: "una_semana" },
+              { label: "🔴 Bloqueo Permanente", value: "permanente" },
+              ...getScheduleRules().customSanctions.map((c) => ({
+                label: `⚙️ Sanción Personalizada: ${c.title}`,
+                value: c.id
+              }))
+            ]
+          }
+        ]
+      : [])
   ];
 
-  const indexOfLastItem =
-    currentPage * itemsPerPage;
+  const filteredChazasList = chazas.filter((c) => {
+    const isSuspended = c.suspendida === true || (c.fecha_fin_sancion && new Date(c.fecha_fin_sancion) > new Date());
+    if (sanctionFilter === "sanctioned") return isSuspended;
+    if (sanctionFilter === "unsanctioned") return !isSuspended;
+    return true;
+  });
 
-  const indexOfFirstItem =
-    indexOfLastItem - itemsPerPage;
+  const sanctionedCount = chazas.filter((c) => c.suspendida === true || (c.fecha_fin_sancion && new Date(c.fecha_fin_sancion) > new Date())).length;
+  const unsanctionedCount = chazas.length - sanctionedCount;
 
-  const currentChazas = Array.isArray(chazas)
-    ? chazas.slice(indexOfFirstItem, indexOfLastItem)
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+
+  const currentChazas = Array.isArray(filteredChazasList)
+    ? filteredChazasList.slice(indexOfFirstItem, indexOfLastItem)
     : [];
 
   return (
@@ -657,15 +712,52 @@ export const ChazasPageInner: FC = () => {
           </p>
         </div>
 
-        <Button
-          variant="primary"
-          shape="asymmetric"
-          icon={Plus}
-          onClick={handleOpenCreateModal}
-          className="w-full md:w-auto"
+        {admin && (
+          <Button
+            variant="primary"
+            shape="asymmetric"
+            icon={Plus}
+            onClick={handleOpenCreateModal}
+            className="w-full md:w-auto"
+          >
+            Agregar chaza
+          </Button>
+        )}
+      </div>
+
+      {/* Filter Tabs for Chaza Sanctions */}
+      <div className="flex items-center gap-2 w-full justify-start text-xs font-bold border-b border-neutral-200 pb-2">
+        <button
+          onClick={() => { setSanctionFilter("all"); setCurrentPage(1); }}
+          className={`px-3 py-1.5 rounded-lg transition ${
+            sanctionFilter === "all"
+              ? "bg-neutral-1000 text-white"
+              : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
+          }`}
         >
-          Agregar chaza
-        </Button>
+          Todas ({chazas.length})
+        </button>
+        <button
+          onClick={() => { setSanctionFilter("sanctioned"); setCurrentPage(1); }}
+          className={`px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 ${
+            sanctionFilter === "sanctioned"
+              ? "bg-red-600 text-white"
+              : "bg-red-50 text-red-600 border border-red-200 hover:bg-red-100"
+          }`}
+        >
+          <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+          Sancionadas ({sanctionedCount})
+        </button>
+        <button
+          onClick={() => { setSanctionFilter("unsanctioned"); setCurrentPage(1); }}
+          className={`px-3 py-1.5 rounded-lg transition ${
+            sanctionFilter === "unsanctioned"
+              ? "bg-primary-200 text-white"
+              : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
+          }`}
+        >
+          Sin Sanción ({unsanctionedCount})
+        </button>
       </div>
 
       <div className="w-full flex flex-col items-center gap-4">
@@ -775,7 +867,7 @@ export const ChazasPageInner: FC = () => {
           subtitle="Información completa del puesto comercial"
           icon={Store}
           onClose={() => setIsDetailOpen(false)}
-          onEdit={detailChaza ? () => {
+          onEdit={admin && detailChaza ? () => {
             setIsDetailOpen(false);
             handleOpenEditModal(detailChaza.id_chaza || detailChaza.idChaza);
           } : undefined}

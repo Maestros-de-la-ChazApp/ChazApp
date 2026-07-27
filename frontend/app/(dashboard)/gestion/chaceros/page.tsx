@@ -14,6 +14,7 @@ import { Pagination } from "@/components/ui/Pagination";
 import { DetailCard } from "@/components/ui/DetailCard";
 
 import { FACULTADES_UNAL, ROLES_CHACEROS, API_BASE_URL } from "@/constants";
+import { isAdmin } from "@/utils/auth";
 
 export const ChacerosPageInner: FC<IChacerosPageProps> = (props) => {
   const router = useRouter();
@@ -27,12 +28,14 @@ export const ChacerosPageInner: FC<IChacerosPageProps> = (props) => {
   const [itemsPerPage, setItemsPerPage] = useState(20);
   const [chaceros, setChaceros] = useState<any[]>([]);
   const [token, setToken] = useState<string | null>(null);
+  const [admin, setAdmin] = useState(false);
 
   const searchParams = useSearchParams();
   const viewId = searchParams.get("view");
 
   useEffect(() => {
     setToken(localStorage.getItem("token"));
+    setAdmin(isAdmin());
   }, []);
 
   useEffect(() => {
@@ -59,7 +62,8 @@ export const ChacerosPageInner: FC<IChacerosPageProps> = (props) => {
 
     fetch(`${API_BASE_URL}/chaceros`, {
       headers: {
-        Authorization: `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
+        "ngrok-skip-browser-warning": "true"
       }
     })
       .then((response) => {
@@ -108,7 +112,8 @@ export const ChacerosPageInner: FC<IChacerosPageProps> = (props) => {
     try {
       const response = await fetch(`${API_BASE_URL}/chazas`, {
         headers: {
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
+          "ngrok-skip-browser-warning": "true"
         }
       });
       let associatedChazas: any[] = [];
@@ -168,7 +173,8 @@ export const ChacerosPageInner: FC<IChacerosPageProps> = (props) => {
           {
             method: "DELETE",
             headers: {
-              Authorization: `Bearer ${token}`
+              Authorization: `Bearer ${token}`,
+              "ngrok-skip-browser-warning": "true"
             }
           }
         );
@@ -181,7 +187,8 @@ export const ChacerosPageInner: FC<IChacerosPageProps> = (props) => {
           `${API_BASE_URL}/chaceros`,
           {
             headers: {
-              Authorization: `Bearer ${token}`
+              Authorization: `Bearer ${token}`,
+              "ngrok-skip-browser-warning": "true"
             }
           }
         );
@@ -223,7 +230,8 @@ export const ChacerosPageInner: FC<IChacerosPageProps> = (props) => {
         method: method,
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
+          "ngrok-skip-browser-warning": "true"
         },
         body: JSON.stringify(payload)
       });
@@ -239,7 +247,8 @@ export const ChacerosPageInner: FC<IChacerosPageProps> = (props) => {
         `${API_BASE_URL}/chaceros`,
         {
           headers: {
-            Authorization: `Bearer ${token}`
+            Authorization: `Bearer ${token}`,
+            "ngrok-skip-browser-warning": "true"
           }
         }
       );
@@ -370,14 +379,16 @@ export const ChacerosPageInner: FC<IChacerosPageProps> = (props) => {
             </p>
           </div>
 
-          <Button
-            variant="primary"
-            shape="asymmetric"
-            icon={Plus}
-            onClick={handleOpenCreateModal}
-          >
-            Agregar chacero/a
-          </Button>
+          {admin && (
+            <Button
+              variant="primary"
+              shape="asymmetric"
+              icon={Plus}
+              onClick={handleOpenCreateModal}
+            >
+              Agregar chacero/a
+            </Button>
+          )}
         </div>
 
         <div className="w-full flex flex-col gap-4">
@@ -437,7 +448,7 @@ export const ChacerosPageInner: FC<IChacerosPageProps> = (props) => {
             subtitle="Información del personal registrado"
             icon={CircleUserRound}
             onClose={() => setIsDetailOpen(false)}
-            onEdit={detailChacero ? () => {
+            onEdit={admin && detailChacero ? () => {
               setIsDetailOpen(false);
               handleOpenEditModal(detailChacero.id_chacero);
             } : undefined}

@@ -1,7 +1,7 @@
 "use client";
 
 import { FC, useState, useEffect } from "react";
-import { LogIn, LogOut, ArrowLeftRight, X } from "lucide-react";
+import { LogIn, LogOut, ArrowLeftRight, X, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { Form } from "@/components/ui/Form";
@@ -12,6 +12,7 @@ import { Select } from "@/components/ui/Select";
 import { Input } from "@/components/ui/Input";
 import { FormField } from "@/types";
 import { API_BASE_URL } from "@/constants";
+import { validateEntrySchedule, validateExitSchedule, getScheduleRules } from "@/utils/scheduleConfig";
 
 const formatTime = (dateString: string | undefined): string => {
   if (!dateString) return "No disponible";
@@ -48,6 +49,8 @@ export const IngresoSalidaPage: FC = () => {
   const [chazasList, setChazasList] = useState<any[]>([]);
   const [token, setToken] = useState<string | null>(null);
 
+  const [prohibitionError, setProhibitionError] = useState<string | null>(null);
+
   const [emailInput, setEmailInput] = useState("");
   const [filteredChazas, setFilteredChazas] = useState<any[]>([]);
   const [porteria, setPorteria] = useState("");
@@ -61,7 +64,8 @@ export const IngresoSalidaPage: FC = () => {
     try {
       const response = await fetch(`${API_BASE_URL}/chazas`, {
         headers: {
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
+          "ngrok-skip-browser-warning": "true"
         }
       });
       if (response.ok) {
@@ -80,7 +84,8 @@ export const IngresoSalidaPage: FC = () => {
     try {
       const response = await fetch(`${API_BASE_URL}/movimientos`, {
         headers: {
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
+          "ngrok-skip-browser-warning": "true"
         }
       });
       if (response.ok) {
@@ -132,7 +137,109 @@ export const IngresoSalidaPage: FC = () => {
       return;
     }
     setIsSubmitting(true);
+    setProhibitionError(null);
+
     try {
+      const emailQuery = emailInput.trim().toLowerCase();
+      const targetChaza = chazasList.find(
+        (c) =>
+          c.correoChacero?.toLowerCase() === emailQuery ||
+          c.nombreChaza?.toLowerCase() === emailQuery
+      );
+
+      // 1. Check if chaza has an active prohibition / sanction
+      if (targetChaza) {
+        const isSuspended = targetChaza.suspendida === true;
+        const sanctionEndDate = targetChaza.fecha_fin_sancion ? new Date(targetChaza.fecha_fin_sancion) : null;
+        const isSanctionActive = sanctionEndDate ? sanctionEndDate > new Date() : false;
+
+        if ((isSuspended || isSanctionActive) && modalMode === "ingreso") {
+          const endDateFormatted = sanctionEndDate
+            ? sanctionEndDate.toLocaleString("es-CO", { dateStyle: "medium", timeStyle: "short" })
+            : "indefinido";
+          setProhibitionError(
+            `¡INGRESO PROHIBIDO! La chaza "${targetChaza.nombreChaza || targetChaza.nombre_chaza}" tiene una sanción activa hasta el ${endDateFormatted} y no puede ingresar al campus.`
+          );
+          setIsSubmitting(false);
+          return;
+        }
+      }
+
+      // 2. Validate Movement Schedule Rules
+      const now = new Date();
+      let scheduleCheck = modalMode === "ingreso" ? validateEntrySchedule(now) : validateExitSchedule(now);
+
+      // 3. Check for unclosed session from previous days
+      let unclosedSessionError = false;
+      if (targetChaza) {
+        const chazaMovs = movimientos.filter(
+          (m) =>
+            m.correoChaza?.toLowerCase() === emailQuery ||
+            m.id_chaza === targetChaza.idChaza ||
+            m.id_chaza === targetChaza.id_chaza
+        );
+        if (chazaMovs.length > 0) {
+          const lastMov = chazaMovs[0]; // sorted descending
+          const lastDate = new Date(lastMov.fecha_hora);
+          const isSameDay =
+            lastDate.getFullYear() === now.getFullYear() &&
+            lastDate.getMonth() === now.getMonth() &&
+            lastDate.getDate() === now.getDate();
+
+          if (getNormalizedTipo(lastMov.tipo) === "ENTRADA" && !isSameDay) {
+            unclosedSessionError = true;
+          }
+        }
+      }
+
+      // 4. Apply Auto-Sanction if rule violated
+      if (!scheduleCheck.isValid || unclosedSessionError) {
+        const rules = getScheduleRules();
+        const endDate = new Date();
+        endDate.setDate(endDate.getDate() + rules.defaultSanctionDays);
+
+        const reason = unclosedSessionError
+          ? "No registró la salida del día anterior."
+          : scheduleCheck.reason || "Infracción de horario.";
+
+        if (targetChaza) {
+          // Post automatic sanction record
+          await fetch(`${API_BASE_URL}/situaciones`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+              "ngrok-skip-browser-warning": "true"
+            },
+            body: JSON.stringify({
+              id_chaza: targetChaza.idChaza || targetChaza.id_chaza,
+              lugar: porteria || "Portería de Acceso",
+              descripcion: `[Sanción Automática] ${reason}`,
+              gestion_realizada: `Sanción de ${rules.defaultSanctionDays} días hasta ${endDate.toLocaleDateString("es-CO")}.`,
+              genero_sancion: true
+            })
+          }).catch((err) => console.error("Error creating auto sanction:", err));
+
+          // Update chaza status to suspended
+          await fetch(`${API_BASE_URL}/chazas/${targetChaza.idChaza || targetChaza.id_chaza}`, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+              "ngrok-skip-browser-warning": "true"
+            },
+            body: JSON.stringify({
+              ...targetChaza,
+              suspendida: true,
+              fecha_fin_sancion: endDate.toISOString()
+            })
+          }).catch((err) => console.error("Error suspending chaza:", err));
+        }
+
+        alert(`⚠️ ATENCIÓN: Sanción Automática Aplicada.\n\nMotivo: ${reason}\nLa chaza queda sancionada por ${rules.defaultSanctionDays} días.`);
+      }
+
+      // 5. Submit Movement
       const payload = {
         correoChaza: emailInput.trim(),
         tipo: modalMode === "ingreso" ? "ENTRADA" : "SALIDA",
@@ -143,7 +250,8 @@ export const IngresoSalidaPage: FC = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
+          "ngrok-skip-browser-warning": "true"
         },
         body: JSON.stringify(payload)
       });
@@ -156,6 +264,7 @@ export const IngresoSalidaPage: FC = () => {
       alert(`${modalMode === "ingreso" ? "Ingreso" : "Salida"} registrado exitosamente.`);
       setIsModalOpen(false);
       fetchMovimientos();
+      fetchChazas();
     } catch (error: any) {
       console.error(error);
       alert(error.message || "Error al registrar. Verifique el correo de la chaza.");
@@ -287,7 +396,14 @@ export const IngresoSalidaPage: FC = () => {
             </p>
           </div>
 
-          <form onSubmit={handleCustomSubmit} className="flex flex-col gap-4 relative">
+          <form onSubmit={handleCustomSubmit} className="flex flex-col gap-4 text-left">
+
+            {prohibitionError && (
+              <div className="p-4 bg-alert-200/15 border-2 border-alert-200 rounded-xl flex items-start gap-3 text-alert-200">
+                <ShieldAlert size={28} className="flex-shrink-0 mt-0.5" />
+                <div className="text-xs font-bold leading-relaxed">{prohibitionError}</div>
+              </div>
+            )}
             
             {/* Autocomplete Email Input */}
             <div className="flex flex-col gap-1.5 w-full relative">

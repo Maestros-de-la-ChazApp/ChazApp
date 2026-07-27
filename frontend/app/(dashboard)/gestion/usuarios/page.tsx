@@ -11,7 +11,11 @@ import { Pagination } from "@/components/ui/Pagination";
 import { FormField } from "@/types";
 import { API_BASE_URL } from "@/constants";
 
+import { useRouter } from "next/navigation";
+import { isAdmin } from "@/utils/auth";
+
 export const UsuariosPage: FC = () => {
+  const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [modalMode, setModalMode] = useState<"create" | "edit">("create");
@@ -26,14 +30,18 @@ export const UsuariosPage: FC = () => {
 
   useEffect(() => {
     setToken(localStorage.getItem("token"));
-  }, []);
+    if (!isAdmin()) {
+      router.push("/dashboard");
+    }
+  }, [router]);
 
   const fetchUsuarios = async () => {
     if (!token) return;
     try {
       const response = await fetch(`${API_BASE_URL}/usuarios`, {
         headers: {
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
+          "ngrok-skip-browser-warning": "true"
         }
       });
       if (response.ok) {
@@ -82,7 +90,8 @@ export const UsuariosPage: FC = () => {
         const response = await fetch(`${API_BASE_URL}/usuarios/${selectedUser.id_usuario}`, {
           method: "DELETE",
           headers: {
-            Authorization: `Bearer ${token}`
+            Authorization: `Bearer ${token}`,
+            "ngrok-skip-browser-warning": "true"
           }
         });
         if (response.ok) {
@@ -115,7 +124,8 @@ export const UsuariosPage: FC = () => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`
+            Authorization: `Bearer ${token}`,
+            "ngrok-skip-browser-warning": "true"
           },
           body: JSON.stringify(payload)
         });
@@ -124,7 +134,8 @@ export const UsuariosPage: FC = () => {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`
+            Authorization: `Bearer ${token}`,
+            "ngrok-skip-browser-warning": "true"
           },
           body: JSON.stringify(payload)
         });
