@@ -4,6 +4,7 @@ import com.chazapp.backend.dto.ChazaRequest;
 import com.chazapp.backend.dto.ChazaResponse;
 import com.chazapp.backend.entity.Chacero;
 import com.chazapp.backend.entity.Chaza;
+import com.chazapp.backend.entity.Situacion;
 import com.chazapp.backend.repository.ChaceroRepository;
 import com.chazapp.backend.repository.ChazaRepository;
 
@@ -11,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,6 +24,9 @@ public class ChazaService {
 
     @Autowired
     private ChaceroRepository chaceroRepository;
+
+    @Autowired
+    private SituacionService situacionService;
 
     public List<Chaza> getAllChazas() {
         return repository.findAll();
@@ -140,11 +145,9 @@ public class ChazaService {
 
     public List<ChazaResponse> getAllChazasResponse() {
 
-        List<Chaza> chazas =
-                repository.findAll();
+        List<Chaza> chazas = repository.findAll();
 
-        List<Chacero> chaceros =
-                chaceroRepository.findAll();
+        List<Chacero> chaceros = chaceroRepository.findAll();
 
         return chazas.stream()
                 .map(chaza -> {
@@ -160,6 +163,57 @@ public class ChazaService {
                                     .findFirst()
                                     .orElseThrow();
 
+                    String sancion = "Ok";
+
+                    Optional<Situacion> situacion =
+                            situacionService.getAllSituaciones()
+                                    .stream()
+                                    .filter(
+                                            s -> s.getChaza()
+                                                    .getId_chaza()
+                                                    .equals(
+                                                            chaza.getId_chaza()
+                                                    )
+                                    )
+                                    .max(
+                                            Comparator.comparing(
+                                                    s -> s.getNivel_sancion() == null
+                                                            ? 0
+                                                            : s.getNivel_sancion()
+                                            )
+                                    );
+
+                    if (situacion.isPresent()) {
+
+                        Situacion ultima = situacion.get();
+
+                        if (ultima.getNivel_sancion() != null) {
+
+                            switch (ultima.getNivel_sancion()) {
+
+                                case 1:
+                                    sancion = "Llamado de atención";
+                                    break;
+
+                                case 2:
+                                    sancion = "No ingresa el siguiente jueves";
+                                    break;
+
+                                case 3:
+                                    sancion = "No ingresa una semana";
+                                    break;
+
+                                case 4:
+                                    sancion = "Bloqueo indefinido";
+                                    break;
+
+                                default:
+                                    sancion = "Ok";
+                                    break;
+                            }
+                        }
+                    }
+
                     return new ChazaResponse(
                             chaza.getId_chaza(),
                             chaza.getNombre_chaza(),
@@ -167,7 +221,8 @@ public class ChazaService {
                             chacero.getCorreoInstitucional(),
                             chaza.getProducto(),
                             chaza.getUbicacion(),
-                            chaza.getNum_carpas()
+                            chaza.getNum_carpas(),
+                            sancion
                     );
                 })
                 .toList();

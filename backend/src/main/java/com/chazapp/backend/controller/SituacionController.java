@@ -61,37 +61,8 @@ public class SituacionController {
         situacion.setUsuario(usuario);
         situacion.setLugar(request.getLugar());
         situacion.setDescripcion(request.getDescripcion());
-        situacion.setGestion_realizada(request.getGestion_realizada());
-        situacion.setGenero_sancion(request.getGenero_sancion());
 
         return service.createSituacion(situacion);
-    }
-
-    @PutMapping("/{id}")
-    public Situacion updateSituacion(
-            @PathVariable Integer id,
-            @RequestBody SituacionRequestDTO request,
-            Principal principal
-    ) {
-
-        Usuario usuario = usuarioRepository
-                .findByEmail(principal.getName())
-                .orElseThrow();
-
-        Chaza chaza = chazaRepository
-                .findById(request.getId_chaza())
-                .orElseThrow();
-
-        Situacion situacion = new Situacion();
-
-        situacion.setChaza(chaza);
-        situacion.setUsuario(usuario);
-        situacion.setLugar(request.getLugar());
-        situacion.setDescripcion(request.getDescripcion());
-        situacion.setGestion_realizada(request.getGestion_realizada());
-        situacion.setGenero_sancion(request.getGenero_sancion());
-
-        return service.updateSituacion(id, situacion);
     }
 
     @DeleteMapping("/{id}")

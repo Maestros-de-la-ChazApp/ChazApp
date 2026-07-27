@@ -16,4 +16,5 @@ public class ChazaResponse {
     private String producto;
     private String ubicacion;
     private Integer numCarpas;
+    private String sancion;
 }

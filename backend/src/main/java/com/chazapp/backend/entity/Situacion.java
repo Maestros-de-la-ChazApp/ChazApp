@@ -13,7 +13,6 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
-
 public class Situacion {
 
     @Id
@@ -37,6 +36,15 @@ public class Situacion {
     private String gestion_realizada;
 
     private Boolean genero_sancion;
+
+    @Column(name = "nivel_sancion")
+    private Integer nivel_sancion;
+
+    @Column(name = "vigente_desde")
+    private LocalDateTime vigente_desde;
+
+    @Column(name = "vigente_hasta")
+    private LocalDateTime vigente_hasta;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_usuario", nullable = false)

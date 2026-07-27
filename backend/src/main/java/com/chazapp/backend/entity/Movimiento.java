@@ -41,4 +41,8 @@ public class Movimiento {
 
     @Transient
     private String nombreChaza;
+
+    @Transient
+    @JsonProperty("correoChaza")
+    private String correoChaza;
 }

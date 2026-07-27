@@ -8,12 +8,12 @@ import com.chazapp.backend.entity.Usuario;
 import com.chazapp.backend.repository.ChazaRepository;
 import com.chazapp.backend.repository.MovimientoRepository;
 import com.chazapp.backend.repository.UsuarioRepository;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.security.Principal;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -48,6 +48,19 @@ public class MovimientoService {
             Principal principal
     ) {
 
+        if (movimiento.getIdChaza() == null
+                && movimiento.getCorreoChaza() != null
+                && !movimiento.getCorreoChaza().isBlank()) {
+
+            Chaza chaza = chazaRepository
+                    .findByCorreoPropietario(movimiento.getCorreoChaza())
+                    .orElseThrow(() -> new RuntimeException(
+                            "No se encontró una chaza asociada al correo ingresado."
+                    ));
+
+            movimiento.setIdChaza(chaza.getId_chaza());
+        }
+
         ConfiguracionHorarios configuracion =
                 configuracionService.getConfiguracion();
 
@@ -61,30 +74,46 @@ public class MovimientoService {
                 )
                 .orElse(null);
 
-        if (ultimoMovimiento != null) {
+        if (ultimoMovimiento != null
+                && ultimoMovimiento.getTipo().equalsIgnoreCase(
+                movimiento.getTipo())) {
 
-            if (ultimoMovimiento.getTipo().equalsIgnoreCase(
-                    movimiento.getTipo()
-            )) {
-                throw new RuntimeException(
-                        "No se pueden registrar dos "
-                                + movimiento.getTipo()
-                                + " consecutivas."
-                );
-            }
+            throw new RuntimeException(
+                    "No se pueden registrar dos "
+                            + movimiento.getTipo()
+                            + " consecutivas."
+            );
         }
 
         if ("ENTRADA".equalsIgnoreCase(movimiento.getTipo())) {
 
-            int hora = movimiento
+            LocalTime horaMovimiento = movimiento
                     .getFechaHora()
-                    .getHour();
+                    .toLocalTime();
 
-            if (hora < configuracion.getHoraInicioIngreso()
-                    || hora > configuracion.getHoraFinIngreso()) {
+            LocalTime horaInicio = LocalTime.of(
+                    configuracion.getHoraInicioIngreso(),
+                    0
+            );
+
+            LocalTime horaFin = LocalTime.of(
+                    configuracion.getHoraFinIngreso(),
+                    0
+            );
+
+            if (horaMovimiento.isBefore(horaInicio)
+                    || horaMovimiento.isAfter(horaFin)) {
 
                 throw new RuntimeException(
                         "No se permiten entradas fuera del horario configurado."
+                );
+            }
+
+            if (situacionService.tieneSancionVigente(
+                    movimiento.getIdChaza())) {
+
+                throw new RuntimeException(
+                        "La chaza tiene una sanción vigente y no puede ingresar."
                 );
             }
         }
@@ -93,11 +122,16 @@ public class MovimientoService {
 
         if ("SALIDA".equalsIgnoreCase(movimiento.getTipo())) {
 
-            int hora = movimiento
+            LocalTime horaMovimiento = movimiento
                     .getFechaHora()
-                    .getHour();
+                    .toLocalTime();
 
-            if (hora > configuracion.getHoraLimiteSalida()) {
+            LocalTime horaLimite = LocalTime.of(
+                    configuracion.getHoraLimiteSalida(),
+                    0
+            );
+
+            if (horaMovimiento.isAfter(horaLimite)) {
                 generarSituacion = true;
             }
         }
@@ -127,8 +161,6 @@ public class MovimientoService {
             situacion.setDescripcion(
                     "Salida registrada después de la hora límite configurada."
             );
-            situacion.setGestion_realizada(null);
-            situacion.setGenero_sancion(false);
 
             situacionService.createSituacion(situacion);
         }
