@@ -240,9 +240,15 @@ export const SancionesPage: FC = () => {
           {currentSituaciones.length > 0 ? (
             currentSituaciones.map((sit) => {
               const chaza = chazasList.find(
-                (c) => c.idChaza === sit.id_chaza || c.idChaza === sit.idChaza
+                (c) =>
+                  c.idChaza === sit.chaza?.idChaza ||
+                  c.idChaza === sit.chaza?.id_chaza
               );
-              const nombreChaza = chaza ? chaza.nombreChaza : `Chaza #${sit.id_chaza}`;
+
+              const nombreChaza = chaza
+                ? chaza.nombreChaza
+                : sit.chaza?.nombreChaza ?? "Chaza";
+
               return (
                 <ListItem
                   key={sit.id_situacion}

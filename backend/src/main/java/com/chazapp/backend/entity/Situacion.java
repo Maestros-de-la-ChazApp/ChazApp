@@ -1,5 +1,6 @@
 package com.chazapp.backend.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -7,7 +8,6 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "situaciones")
-
 @Getter
 @Setter
 @NoArgsConstructor
@@ -20,7 +20,13 @@ public class Situacion {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id_situacion;
 
-    private Integer id_chaza;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_chaza", nullable = false)
+    @JsonIgnoreProperties({
+            "hibernateLazyInitializer",
+            "handler"
+    })
+    private Chaza chaza;
 
     private LocalDateTime fecha_hora;
 
@@ -32,5 +38,11 @@ public class Situacion {
 
     private Boolean genero_sancion;
 
-    private Integer id_usuario;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_usuario", nullable = false)
+    @JsonIgnoreProperties({
+            "hibernateLazyInitializer",
+            "handler"
+    })
+    private Usuario usuario;
 }

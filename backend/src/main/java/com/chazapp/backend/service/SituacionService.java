@@ -38,8 +38,8 @@ public class SituacionService {
         Situacion situacion =
                 repository.findById(id).orElseThrow();
 
-        situacion.setId_chaza(
-                situacionActualizada.getId_chaza()
+        situacion.setChaza(
+                situacionActualizada.getChaza()
         );
 
         situacion.setFecha_hora(
@@ -62,8 +62,8 @@ public class SituacionService {
                 situacionActualizada.getGenero_sancion()
         );
 
-        situacion.setId_usuario(
-                situacionActualizada.getId_usuario()
+        situacion.setUsuario(
+                situacionActualizada.getUsuario()
         );
 
         return repository.save(situacion);

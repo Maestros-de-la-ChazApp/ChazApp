@@ -80,6 +80,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
 
         configuration.setAllowedOrigins(List.of(
+                "http://localhost:3000",
                 "https://chazapp-frontend-beta.vercel.app"
         ));
 
