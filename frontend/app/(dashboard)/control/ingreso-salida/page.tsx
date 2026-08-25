@@ -240,11 +240,15 @@ export const IngresoSalidaPage: FC = () => {
       }
 
       // 5. Submit Movement
-      const payload = {
+      const payload: Record<string, any> = {
         correoChaza: emailInput.trim(),
         tipo: modalMode === "ingreso" ? "ENTRADA" : "SALIDA",
         porteria: porteria
       };
+
+      if (targetChaza) {
+        payload.id_chaza = targetChaza.idChaza || targetChaza.id_chaza;
+      }
 
       const response = await fetch(`${API_BASE_URL}/movimientos`, {
         method: "POST",
@@ -261,6 +265,9 @@ export const IngresoSalidaPage: FC = () => {
         throw new Error(errData.error || errData.message || "Error al registrar movimiento");
       }
 
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event("movimiento_registrado"));
+      }
       alert(`${modalMode === "ingreso" ? "Ingreso" : "Salida"} registrado exitosamente.`);
       setIsModalOpen(false);
       fetchMovimientos();

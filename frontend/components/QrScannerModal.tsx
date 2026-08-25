@@ -105,9 +105,9 @@ export default function QrScannerModal({ isOpen, onClose }: QrScannerModalProps)
     const parsedId = Number(scanResult);
     if (!isNaN(parsedId) && String(parsedId) === scanResult) {
       payload.id_chaza = parsedId;
-    } else {
-      payload.qrCode = scanResult;
     }
+    payload.qrCode = scanResult;
+    payload.correoChaza = scanResult;
 
     try {
       const response = await fetch(`${API_BASE_URL}/movimientos`, {
@@ -121,6 +121,9 @@ export default function QrScannerModal({ isOpen, onClose }: QrScannerModalProps)
       });
 
       if (response.ok) {
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new Event("movimiento_registrado"));
+        }
         setStatusMessage({
           type: "success",
           text: `Se registró exitosamente la ${tipoMov} para la chaza "${scanResult}".`,

@@ -73,6 +73,10 @@ public class MovimientoService {
             movimiento.setIdChaza(chaza.getId_chaza());
         }
 
+        if (movimiento.getIdChaza() == null) {
+            throw new RuntimeException("Debe especificar una chaza válida (ID, QR o correo).");
+        }
+
         ConfiguracionHorarios configuracion =
                 configuracionService.getConfiguracion();
 

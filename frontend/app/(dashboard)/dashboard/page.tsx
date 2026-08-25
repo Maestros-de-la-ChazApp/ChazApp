@@ -21,6 +21,15 @@ export default function DashboardPage() {
   const [totalChazas, setTotalChazas] = useState<number>(0);
   const [isLoadingMetrics, setIsLoadingMetrics] = useState(true);
 
+  const parseApiDate = (val: any): Date => {
+    if (!val) return new Date(0);
+    if (Array.isArray(val)) {
+      return new Date(val[0], (val[1] || 1) - 1, val[2] || 1, val[3] || 0, val[4] || 0, val[5] || 0);
+    }
+    const d = new Date(val);
+    return isNaN(d.getTime()) ? new Date(0) : d;
+  };
+
   useEffect(() => {
     // Verificar si el usuario está autenticado al cargar la página
     const token = localStorage.getItem("token");
@@ -55,7 +64,7 @@ export default function DashboardPage() {
             
             // Count suspended or sanctioned chazas
             const sanctioned = chazasData.filter(
-              (c: any) => c.suspendida === true || (c.fecha_fin_sancion && new Date(c.fecha_fin_sancion) > new Date())
+              (c: any) => c.suspendida === true || (c.fecha_fin_sancion && parseApiDate(c.fecha_fin_sancion) > new Date())
             );
             setSancionadasCount(sanctioned.length);
 
@@ -70,7 +79,8 @@ export default function DashboardPage() {
           if (Array.isArray(movData)) {
             const today = new Date();
             const todayIngresos = movData.filter((m: any) => {
-              const movDate = new Date(m.fecha_hora);
+              const rawDate = m.fecha_hora || m.fechaHora;
+              const movDate = parseApiDate(rawDate);
               const isToday =
                 movDate.getFullYear() === today.getFullYear() &&
                 movDate.getMonth() === today.getMonth() &&
@@ -94,6 +104,10 @@ export default function DashboardPage() {
     };
 
     fetchMetrics();
+
+    const handleRefresh = () => fetchMetrics();
+    window.addEventListener("movimiento_registrado", handleRefresh);
+    return () => window.removeEventListener("movimiento_registrado", handleRefresh);
   }, [router, userEmail]);
 
   const handleLogout = () => {
