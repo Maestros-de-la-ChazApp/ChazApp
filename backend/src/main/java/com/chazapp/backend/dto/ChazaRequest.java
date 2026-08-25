@@ -11,6 +11,8 @@ public class ChazaRequest {
 
     private String correoChacero;
 
+    private String qr_code;
+
     private String producto;
 
     private String ubicacion;

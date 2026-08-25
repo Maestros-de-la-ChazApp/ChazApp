@@ -45,4 +45,8 @@ public class Movimiento {
     @Transient
     @JsonProperty("correoChaza")
     private String correoChaza;
+
+    @Transient
+    @JsonProperty("qrCode")
+    private String qrCode;
 }

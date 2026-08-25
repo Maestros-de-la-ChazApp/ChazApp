@@ -18,7 +18,7 @@ public interface SituacionRepository
             WHERE s.chaza.id_chaza = :idChaza
             ORDER BY s.fecha_hora DESC
             """)
-    Optional<Situacion> findTopByChaza_Id_chazaOrderByFecha_horaDesc(
+    List<Situacion> findTopByChaza_Id_chazaOrderByFecha_horaDesc(
             @Param("idChaza") Integer idChaza
     );
 

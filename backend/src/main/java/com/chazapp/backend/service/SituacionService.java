@@ -42,16 +42,23 @@ public class SituacionService {
             return true;
         }
 
-        Optional<Situacion> ultimaSituacion = repository
+        List<Situacion> situacionesAnteriores = repository
                 .findTopByChaza_Id_chazaOrderByFecha_horaDesc(idChaza);
 
-        return ultimaSituacion.isPresent()
-                && Boolean.TRUE.equals(ultimaSituacion.get().getGenero_sancion())
-                && ultimaSituacion.get().getNivel_sancion() != null
-                && ultimaSituacion.get().getNivel_sancion() == 4
-                && ultimaSituacion.get().getVigente_desde() != null
-                && ultimaSituacion.get().getVigente_hasta() == null
-                && !ultimaSituacion.get().getVigente_desde().isAfter(ahora);
+        if (situacionesAnteriores.isEmpty()) {
+            return false;
+        }
+
+        Situacion ultimaSituacion = situacionesAnteriores.get(0);
+
+        return Boolean.TRUE.equals(
+                ultimaSituacion.getGenero_sancion()
+        )
+                && ultimaSituacion.getNivel_sancion() != null
+                && ultimaSituacion.getNivel_sancion() == 4
+                && ultimaSituacion.getVigente_desde() != null
+                && ultimaSituacion.getVigente_hasta() == null
+                && !ultimaSituacion.getVigente_desde().isAfter(ahora);
     }
 
     public Situacion createSituacion(Situacion situacion) {
@@ -60,18 +67,18 @@ public class SituacionService {
             situacion.setFecha_hora(LocalDateTime.now());
         }
 
-        Optional<Situacion> ultimaSituacion = repository
+        List<Situacion> situacionesAnteriores = repository
                 .findTopByChaza_Id_chazaOrderByFecha_horaDesc(
                         situacion.getChaza().getId_chaza()
                 );
 
         int nivel = 1;
 
-        if (ultimaSituacion.isPresent()
-                && ultimaSituacion.get().getNivel_sancion() != null) {
+        if (!situacionesAnteriores.isEmpty()
+                && situacionesAnteriores.get(0).getNivel_sancion() != null) {
 
             nivel = Math.min(
-                    ultimaSituacion.get().getNivel_sancion() + 1,
+                    situacionesAnteriores.get(0).getNivel_sancion() + 1,
                     4
             );
         }
@@ -82,7 +89,9 @@ public class SituacionService {
 
             case 1:
 
-                situacion.setGestion_realizada("Llamado de atención");
+                situacion.setGestion_realizada(
+                        "Llamado de atención"
+                );
                 situacion.setGenero_sancion(false);
                 situacion.setVigente_desde(null);
                 situacion.setVigente_hasta(null);
@@ -93,29 +102,57 @@ public class SituacionService {
 
                 LocalDate siguienteJueves = situacion.getFecha_hora()
                         .toLocalDate()
-                        .with(TemporalAdjusters.next(DayOfWeek.THURSDAY));
+                        .with(
+                                TemporalAdjusters.next(
+                                        DayOfWeek.THURSDAY
+                                )
+                        );
 
-                situacion.setGestion_realizada("No puede ingresar el siguiente jueves");
+                situacion.setGestion_realizada(
+                        "No puede ingresar el siguiente jueves"
+                );
                 situacion.setGenero_sancion(true);
-                situacion.setVigente_desde(LocalDateTime.of(siguienteJueves, LocalTime.MIN));
-                situacion.setVigente_hasta(LocalDateTime.of(siguienteJueves, LocalTime.MAX));
+
+                situacion.setVigente_desde(
+                        LocalDateTime.of(
+                                siguienteJueves,
+                                LocalTime.MIN
+                        )
+                );
+
+                situacion.setVigente_hasta(
+                        LocalDateTime.of(
+                                siguienteJueves,
+                                LocalTime.MAX
+                        )
+                );
 
                 break;
 
             case 3:
 
-                situacion.setGestion_realizada("No puede ingresar durante una semana");
+                situacion.setGestion_realizada(
+                        "No puede ingresar durante una semana"
+                );
                 situacion.setGenero_sancion(true);
-                situacion.setVigente_desde(situacion.getFecha_hora());
-                situacion.setVigente_hasta(situacion.getFecha_hora().plusDays(7));
+                situacion.setVigente_desde(
+                        situacion.getFecha_hora()
+                );
+                situacion.setVigente_hasta(
+                        situacion.getFecha_hora().plusDays(7)
+                );
 
                 break;
 
             default:
 
-                situacion.setGestion_realizada("No puede ingresar hasta nuevo aviso");
+                situacion.setGestion_realizada(
+                        "No puede ingresar hasta nuevo aviso"
+                );
                 situacion.setGenero_sancion(true);
-                situacion.setVigente_desde(situacion.getFecha_hora());
+                situacion.setVigente_desde(
+                        situacion.getFecha_hora()
+                );
                 situacion.setVigente_hasta(null);
 
                 break;
@@ -124,20 +161,53 @@ public class SituacionService {
         return repository.save(situacion);
     }
 
-    public Situacion updateSituacion(Integer id, Situacion situacionActualizada) {
+    public Situacion updateSituacion(
+            Integer id,
+            Situacion situacionActualizada
+    ) {
 
-        Situacion situacion = repository.findById(id).orElseThrow();
+        Situacion situacion =
+                repository.findById(id).orElseThrow();
 
-        situacion.setChaza(situacionActualizada.getChaza());
-        situacion.setFecha_hora(situacionActualizada.getFecha_hora());
-        situacion.setLugar(situacionActualizada.getLugar());
-        situacion.setDescripcion(situacionActualizada.getDescripcion());
-        situacion.setGestion_realizada(situacionActualizada.getGestion_realizada());
-        situacion.setGenero_sancion(situacionActualizada.getGenero_sancion());
-        situacion.setNivel_sancion(situacionActualizada.getNivel_sancion());
-        situacion.setVigente_desde(situacionActualizada.getVigente_desde());
-        situacion.setVigente_hasta(situacionActualizada.getVigente_hasta());
-        situacion.setUsuario(situacionActualizada.getUsuario());
+        situacion.setChaza(
+                situacionActualizada.getChaza()
+        );
+
+        situacion.setFecha_hora(
+                situacionActualizada.getFecha_hora()
+        );
+
+        situacion.setLugar(
+                situacionActualizada.getLugar()
+        );
+
+        situacion.setDescripcion(
+                situacionActualizada.getDescripcion()
+        );
+
+        situacion.setGestion_realizada(
+                situacionActualizada.getGestion_realizada()
+        );
+
+        situacion.setGenero_sancion(
+                situacionActualizada.getGenero_sancion()
+        );
+
+        situacion.setNivel_sancion(
+                situacionActualizada.getNivel_sancion()
+        );
+
+        situacion.setVigente_desde(
+                situacionActualizada.getVigente_desde()
+        );
+
+        situacion.setVigente_hasta(
+                situacionActualizada.getVigente_hasta()
+        );
+
+        situacion.setUsuario(
+                situacionActualizada.getUsuario()
+        );
 
         return repository.save(situacion);
     }

@@ -36,6 +36,10 @@ public class ChazaService {
         return repository.findById(id);
     }
 
+    public Optional<Chaza> getChazaByQr(String qrCode) {
+        return repository.findByQrCode(qrCode);
+    }
+
     public Chaza createChaza(ChazaRequest request) {
 
         Chacero chacero =
@@ -67,6 +71,10 @@ public class ChazaService {
 
         chaza.setNombre_chaza(
                 request.getNombreChaza()
+        );
+
+        chaza.setQr_code(
+                request.getQr_code()
         );
 
         chaza.setProducto(

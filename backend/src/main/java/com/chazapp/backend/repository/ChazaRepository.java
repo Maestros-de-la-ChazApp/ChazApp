@@ -29,7 +29,12 @@ public interface ChazaRepository
         FROM Chaza c
         WHERE c.id_chacero = :idChacero
     """)
-    Optional<Chaza> findByIdChacero(
-            Integer idChacero
-    );
+    Optional<Chaza> findByIdChacero(Integer idChacero);
+
+    @Query("""
+        SELECT c
+        FROM Chaza c
+        WHERE c.qr_code = :qrCode
+    """)
+    Optional<Chaza> findByQrCode(String qrCode);
 }
