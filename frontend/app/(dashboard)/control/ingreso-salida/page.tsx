@@ -258,7 +258,7 @@ export const IngresoSalidaPage: FC = () => {
 
       if (!response.ok) {
         const errData = await response.json().catch(() => ({}));
-        throw new Error(errData.message || "Error al registrar movimiento");
+        throw new Error(errData.error || errData.message || "Error al registrar movimiento");
       }
 
       alert(`${modalMode === "ingreso" ? "Ingreso" : "Salida"} registrado exitosamente.`);

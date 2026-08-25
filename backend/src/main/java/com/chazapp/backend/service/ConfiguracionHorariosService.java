@@ -25,7 +25,7 @@ public class ConfiguracionHorariosService {
     public ConfiguracionHorarios getConfiguracion() {
         return repository
                 .findFirstByOrderByIdConfiguracionAsc()
-                .orElseThrow();
+                .orElseGet(() -> new ConfiguracionHorarios(null, 6, 9, 22));
     }
 
     public ConfiguracionHorarios createConfiguracion(

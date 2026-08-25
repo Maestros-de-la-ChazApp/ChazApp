@@ -127,10 +127,20 @@ export default function QrScannerModal({ isOpen, onClose }: QrScannerModalProps)
         });
       } else {
         const errorData = await response.json().catch(() => null);
-        const errorText = errorData?.message || errorData?.error || "La chaza cuenta con una restricción o sanción activa.";
+        const rawError = errorData?.error || errorData?.message || "La chaza cuenta con una restricción o sanción activa.";
+        let formattedText = rawError;
+
+        if (rawError.includes("consecutivas")) {
+          formattedText = `Acción No Permitida: ${rawError}`;
+        } else if (rawError.includes("horario configurado")) {
+          formattedText = `Horario Restringido: ${rawError}`;
+        } else if (rawError.includes("sanción vigente")) {
+          formattedText = `Acceso Denegado por Sanción: ${rawError}`;
+        }
+
         setStatusMessage({
           type: "error",
-          text: `⚠️ Infracción / Restricción: ${errorText}`,
+          text: `⚠️ ${formattedText}`,
         });
       }
     } catch (e) {
