@@ -12,6 +12,8 @@ import { isAdmin } from "@/utils/auth";
 import {
   getScheduleRules,
   saveScheduleRules,
+  fetchScheduleRulesFromApi,
+  saveScheduleRulesToApi,
   ScheduleRules,
   CustomSanctionRule,
   DEFAULT_CUSTOM_SANCTIONS
@@ -47,15 +49,18 @@ export const ReglasSancionesPage: FC = () => {
     }
     setAdmin(true);
     setScheduleRules(getScheduleRules());
+    const token = localStorage.getItem("token");
+    fetchScheduleRulesFromApi(token).then((apiRules) => {
+      if (apiRules) setScheduleRules(apiRules);
+    });
   }, [router]);
 
-  const handleSaveConfig = () => {
+  const handleSaveConfig = async () => {
     setIsSaving(true);
-    saveScheduleRules(scheduleRules);
-    setTimeout(() => {
-      setIsSaving(false);
-      alert("Reglas de sanciones actualizadas con éxito.");
-    }, 600);
+    const token = localStorage.getItem("token");
+    await saveScheduleRulesToApi(scheduleRules, token);
+    setIsSaving(false);
+    alert("Reglas de horarios y sanciones actualizadas con éxito.");
   };
 
   const handleAddCustomSanction = (e: React.FormEvent) => {

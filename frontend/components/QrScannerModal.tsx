@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Html5Qrcode } from "html5-qrcode";
 import { X, CheckCircle2, ArrowLeftRight, Loader2 } from "lucide-react";
 import { validateEntrySchedule, validateExitSchedule } from "@/utils/scheduleConfig";
+import { API_BASE_URL } from "@/constants";
 
 interface QrScannerModalProps {
   isOpen: boolean;
@@ -90,25 +91,64 @@ export default function QrScannerModal({ isOpen, onClose }: QrScannerModalProps)
     }
   };
 
-  const handleRegisterMovement = (type: "INGRESO" | "SALIDA") => {
+  const handleRegisterMovement = async (type: "INGRESO" | "SALIDA") => {
     setScanType(type);
-    
-    const now = new Date();
-    const check = type === "INGRESO" ? validateEntrySchedule(now) : validateExitSchedule(now);
+    const token = localStorage.getItem("token");
+    const tipoMov = type === "INGRESO" ? "ENTRADA" : "SALIDA";
 
-    setTimeout(() => {
+    const payload: Record<string, any> = {
+      tipo: tipoMov,
+      porteria: "Escáner QR",
+      fecha_hora: new Date().toISOString(),
+    };
+
+    const parsedId = Number(scanResult);
+    if (!isNaN(parsedId) && String(parsedId) === scanResult) {
+      payload.id_chaza = parsedId;
+    } else {
+      payload.qrCode = scanResult;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/movimientos`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+          "ngrok-skip-browser-warning": "true",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (response.ok) {
+        setStatusMessage({
+          type: "success",
+          text: `Se registró exitosamente la ${tipoMov} para la chaza "${scanResult}".`,
+        });
+      } else {
+        const errorData = await response.json().catch(() => null);
+        const errorText = errorData?.message || errorData?.error || "La chaza cuenta con una restricción o sanción activa.";
+        setStatusMessage({
+          type: "error",
+          text: `⚠️ Infracción / Restricción: ${errorText}`,
+        });
+      }
+    } catch (e) {
+      console.error("Error al enviar movimiento al servidor:", e);
+      const now = new Date();
+      const check = type === "INGRESO" ? validateEntrySchedule(now) : validateExitSchedule(now);
       if (!check.isValid) {
         setStatusMessage({
           type: "error",
-          text: `⚠️ Sanción Automática Registrada: ${check.reason} Se ha procesado la ${type === "INGRESO" ? "ENTRADA" : "SALIDA"} para la chaza "${scanResult}" con notificación de infracción.`
+          text: `⚠️ Sanción Automática Registrada: ${check.reason} Se ha procesado la ${tipoMov} para la chaza "${scanResult}" con notificación de infracción.`
         });
       } else {
         setStatusMessage({
           type: "success",
-          text: `Se registró exitosamente la ${type === "INGRESO" ? "ENTRADA" : "SALIDA"} para la chaza con ID/QR: "${scanResult}".`
+          text: `Se registró exitosamente la ${tipoMov} para la chaza con ID/QR: "${scanResult}".`
         });
       }
-    }, 600);
+    }
   };
 
   const handleReset = () => {

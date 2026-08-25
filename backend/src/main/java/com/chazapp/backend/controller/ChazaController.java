@@ -31,6 +31,15 @@ public class ChazaController {
                 .orElseThrow();
     }
 
+    @GetMapping("/qr/{qrCode}")
+    public Chaza getChazaByQr(
+            @PathVariable String qrCode
+    ) {
+        return service
+                .getChazaByQr(qrCode)
+                .orElseThrow();
+    }
+
     @PostMapping
     public Chaza createChaza(
             @RequestBody ChazaRequest request

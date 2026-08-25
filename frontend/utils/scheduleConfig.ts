@@ -1,3 +1,5 @@
+import { API_BASE_URL } from "@/constants";
+
 export interface CustomSanctionRule {
   id: string;
   title: string;
@@ -59,6 +61,76 @@ export const getScheduleRules = (): ScheduleRules => {
 export const saveScheduleRules = (rules: ScheduleRules): void => {
   if (typeof window === "undefined") return;
   localStorage.setItem("schedule_config", JSON.stringify(rules));
+};
+
+export const fetchScheduleRulesFromApi = async (token?: string | null): Promise<ScheduleRules | null> => {
+  try {
+    const headers: Record<string, string> = { "ngrok-skip-browser-warning": "true" };
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+    const res = await fetch(`${API_BASE_URL}/configuracion-horarios`, { headers });
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data) && data.length > 0) {
+        const config = data[0];
+        const localRules = getScheduleRules();
+        const updatedRules: ScheduleRules = {
+          ...localRules,
+          entryStartHour: config.horaInicioIngreso ?? localRules.entryStartHour,
+          entryEndHour: config.horaFinIngreso ?? localRules.entryEndHour,
+          exitMaxHour: config.horaLimiteSalida ?? localRules.exitMaxHour,
+        };
+        saveScheduleRules(updatedRules);
+        return updatedRules;
+      }
+    }
+  } catch (e) {
+    console.error("Error fetching schedule rules from API:", e);
+  }
+  return null;
+};
+
+export const saveScheduleRulesToApi = async (rules: ScheduleRules, token?: string | null): Promise<boolean> => {
+  saveScheduleRules(rules);
+  try {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      "ngrok-skip-browser-warning": "true",
+    };
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+
+    const res = await fetch(`${API_BASE_URL}/configuracion-horarios`, { headers });
+    let existingId: number | null = null;
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data) && data.length > 0) {
+        existingId = data[0].idConfiguracion;
+      }
+    }
+
+    const payload = {
+      horaInicioIngreso: rules.entryStartHour,
+      horaFinIngreso: rules.entryEndHour,
+      horaLimiteSalida: rules.exitMaxHour,
+    };
+
+    if (existingId) {
+      await fetch(`${API_BASE_URL}/configuracion-horarios/${existingId}`, {
+        method: "PUT",
+        headers,
+        body: JSON.stringify({ idConfiguracion: existingId, ...payload }),
+      });
+    } else {
+      await fetch(`${API_BASE_URL}/configuracion-horarios`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify(payload),
+      });
+    }
+    return true;
+  } catch (e) {
+    console.error("Error saving schedule rules to API:", e);
+    return false;
+  }
 };
 
 export interface ValidationResult {

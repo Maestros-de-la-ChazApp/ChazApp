@@ -49,6 +49,18 @@ public class MovimientoService {
     ) {
 
         if (movimiento.getIdChaza() == null
+                && movimiento.getQrCode() != null
+                && !movimiento.getQrCode().isBlank()) {
+
+            Chaza chaza = chazaRepository
+                    .findByQrCode(movimiento.getQrCode())
+                    .orElseThrow(() -> new RuntimeException(
+                            "No se encontró una chaza asociada al QR ingresado."
+                    ));
+
+            movimiento.setIdChaza(chaza.getId_chaza());
+
+        } else if (movimiento.getIdChaza() == null
                 && movimiento.getCorreoChaza() != null
                 && !movimiento.getCorreoChaza().isBlank()) {
 
