@@ -4,6 +4,7 @@ import { Info, Users, LockKeyhole } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { API_BASE_URL } from "@/constants";
+import { decodeJwtPayload } from "@/utils/auth";
 
 export default function Home() {
 
@@ -39,13 +40,9 @@ export default function Home() {
         localStorage.setItem("token", tokenPlano);
         localStorage.setItem("userEmail", formData.usuario);
 
-        try {
-          const payload = JSON.parse(atob(tokenPlano.split('.')[1]));
-          if (payload && payload.rol) {
-            localStorage.setItem("userRole", payload.rol);
-          }
-        } catch (e) {
-          console.error("Error decoding JWT payload:", e);
+        const payload = decodeJwtPayload(tokenPlano);
+        if (payload && (payload.rol || payload.role)) {
+          localStorage.setItem("userRole", payload.rol || payload.role);
         }
 
         // 3. Redirección inmediata al dashboard
